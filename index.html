@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07090f">
+<title>ViralForge AI Studio</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07090f;color:#f7f8fc;font-family:Inter,system-ui,-apple-system,sans-serif}
+button,input,select{font:inherit}.app{min-height:100vh;display:flex}.side{width:235px;border-right:1px solid #202531;padding:20px;background:#0a0d14}.brand{font-weight:900;font-size:20px;margin-bottom:28px}.brand i{color:#8b6cff;font-style:normal}.nav button{display:block;width:100%;text-align:left;background:none;border:0;color:#9ca5b5;padding:12px;border-radius:10px;margin:3px 0}.nav button.active,.nav button:hover{background:#171b27;color:#fff}.main{flex:1;padding:24px;max-width:1200px}.top{display:flex;justify-content:space-between;gap:15px;align-items:center}.top h1{margin:0;font-size:30px}.status{color:#54e39a;font-size:13px}.grid{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:20px}.card{background:#0e121b;border:1px solid #202531;border-radius:16px;padding:18px}.card h2{font-size:16px;margin:0 0 15px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{background:#0a0d14;border:1px solid #202531;border-radius:12px;padding:13px}.stat b{font-size:22px;display:block}.stat span{font-size:11px;color:#8e98a9}.field{margin:11px 0}.field label{display:block;color:#8e98a9;font-size:12px;margin-bottom:6px}input,select{width:100%;background:#0a0d14;border:1px solid #29303d;color:#fff;padding:11px;border-radius:9px}button.primary{background:#7657ff;border:0;color:white;padding:11px 15px;border-radius:9px;font-weight:800}button.secondary{background:#1a202b;border:1px solid #2b3340;color:#fff;padding:11px 15px;border-radius:9px}.actions{display:flex;gap:9px;margin-top:14px}.queue{display:grid;gap:9px}.video{padding:13px;border:1px solid #222a37;border-radius:11px;background:#0a0d14}.video b{font-size:14px}.meta{color:#8e98a9;font-size:11px;margin-top:5px}.pill{float:right;background:#17251f;color:#55dfa0;padding:3px 7px;border-radius:20px;font-size:10px}.log{height:160px;overflow:auto;background:#07090d;border-radius:10px;padding:10px;color:#aeb7c6;font:11px ui-monospace,monospace}.hint{font-size:12px;color:#8e98a9;line-height:1.5}.wide{grid-column:1/-1}@media(max-width:800px){.side{display:none}.main{padding:16px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.top h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side"><div class="brand">ViralForge <i>AI Studio</i></div><div class="nav">
+<button class="active">⚡ Command Center</button><button>🎬 Content Queue</button><button>📈 Analytics</button><button>🧠 Idea Lab</button><button>⚙️ Automation</button>
+</div></aside>
+<main class="main">
+<div class="top"><div><h1>Command Center</h1><div class="status">● Engine ready</div></div><button class="primary" onclick="run()">RUN BATCH</button></div>
+<div class="grid">
+<section class="card wide"><div class="stats"><div class="stat"><b id="ideas">0</b><span>IDEAS</span></div><div class="stat"><b id="scripts">0</b><span>SCRIPTS</span></div><div class="stat"><b id="videos">0</b><span>VIDEO JOBS</span></div><div class="stat"><b id="runs">0</b><span>BATCH RUNS</span></div></div></section>
+<section class="card"><h2>Automation</h2>
+<div class="field"><label>Niche</label><input id="niche" value="Impossible Reality"></div>
+<div class="field"><label>Batch size</label><select id="size"><option>5</option><option selected>10</option><option>20</option></select></div>
+<div class="field"><label>Repeat</label><select id="repeat"><option>Manual</option><option>Every 30 min</option><option>Every hour</option></select></div>
+<div class="actions"><button class="primary" onclick="run()">Generate</button><button class="secondary" onclick="stop()">Stop</button></div>
+<p class="hint">The live site can later connect approved AI generation, rendering, analytics and publishing APIs. This browser-only version never stores passwords or secret API keys.</p>
+</section>
+<section class="card"><h2>Activity</h2><div class="log" id="log">Ready. Choose your niche and run a batch.</div></section>
+<section class="card wide"><h2>Production Queue</h2><div class="queue" id="queue"></div></section>
+</div></main></div>
+<script>
+const ideas=["What if Earth had two moons?","POV: you wake up 500 years in the future.","What would a school on Mars look like?","What if gravity disappeared for 10 seconds?","A city built inside a volcano.","What if humans could see time?","The last city on Earth.","What would a hotel inside Jupiter look like?","What if the ocean vanished overnight?","A civilization underneath Antarctica."];
+let stats={ideas:0,scripts:0,videos:0,runs:0},timer=null;
+function log(t){const x=document.getElementById('log');x.innerHTML+="<br>"+new Date().toLocaleTimeString()+" — "+t;x.scrollTop=x.scrollHeight}
+function render(){for(const k in stats)document.getElementById(k).textContent=stats[k]}
+function run(){let n=+document.getElementById('size').value;stats.runs++;stats.ideas+=n;stats.scripts+=n;stats.videos+=n;render();let q=document.getElementById('queue');for(let i=0;i<n;i++){let d=document.createElement('div');d.className='video';d.innerHTML="<b>"+ideas[(stats.ideas-n+i)%ideas.length]+"</b><span class='pill'>QUEUED</span><div class='meta'>Hook → Script → Visuals → Voice → Edit → Review</div>";q.prepend(d)}log("Batch "+stats.runs+" generated for "+document.getElementById('niche').value);startRepeat()}
+function startRepeat(){stop(false);let r=document.getElementById('repeat').value;if(r!=="Manual")timer=setInterval(run,r==="Every 30 min"?1800000:3600000)}
+function stop(message=true){if(timer){clearInterval(timer);timer=null}if(message)log("Repeat engine stopped.")}
+document.getElementById('repeat').addEventListener('change',startRepeat);
+</script>
+</body></html>
