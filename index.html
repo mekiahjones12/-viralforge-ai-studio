@@ -19,30 +19,19 @@
   --red:#ef4444;
 }
 
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
   margin:0;
-  background:
-    radial-gradient(circle at 70% -10%,#4c2478 0,#07080d 35%);
+  background:radial-gradient(circle at 70% -10%,#4c2478 0,#07080d 35%);
   color:var(--text);
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 
-button,input,textarea,select{
-  font:inherit;
-}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
 
-button{
-  cursor:pointer;
-}
-
-.app{
-  min-height:100vh;
-  display:flex;
-}
+.app{min-height:100vh;display:flex}
 
 .sidebar{
   position:fixed;
@@ -75,10 +64,7 @@ button{
   box-shadow:0 10px 35px #8b5cf655;
 }
 
-.nav{
-  display:grid;
-  gap:6px;
-}
+.nav{display:grid;gap:6px}
 
 .nav button{
   width:100%;
@@ -111,10 +97,7 @@ button{
   margin-bottom:18px;
 }
 
-.topbar h1{
-  margin:0;
-  font-size:28px;
-}
+.topbar h1{margin:0;font-size:28px}
 
 .status{
   padding:7px 12px;
@@ -124,16 +107,10 @@ button{
   color:#bfc6d8;
 }
 
-.page{
-  display:none;
-}
+.page{display:none}
+.page.active{display:block}
 
-.page.active{
-  display:block;
-}
-
-.hero,
-.panel{
+.hero,.panel{
   border:1px solid var(--line);
   border-radius:20px;
   background:linear-gradient(180deg,#131722,#0d1017);
@@ -141,9 +118,7 @@ button{
   box-shadow:0 18px 55px #0006;
 }
 
-.hero{
-  margin-bottom:15px;
-}
+.hero{margin-bottom:15px}
 
 .hero h2{
   font-size:44px;
@@ -158,10 +133,7 @@ button{
   color:transparent;
 }
 
-.muted{
-  color:var(--muted);
-  line-height:1.55;
-}
+.muted{color:var(--muted);line-height:1.55}
 
 .grid{
   display:grid;
@@ -177,17 +149,9 @@ button{
   background:#0d1017;
 }
 
-.card.wide{
-  grid-column:span 8;
-}
-
-.card.full{
-  grid-column:1/-1;
-}
-
-.card h3{
-  margin-top:0;
-}
+.card.wide{grid-column:span 8}
+.card.full{grid-column:1/-1}
+.card h3{margin-top:0}
 
 .form-grid{
   display:grid;
@@ -263,13 +227,6 @@ button{
 .danger{
   border-color:#672b32;
   color:#ffb2ba;
-}
-
-.tabs{
-  display:flex;
-  gap:7px;
-  flex-wrap:wrap;
-  margin-bottom:15px;
 }
 
 .result{
@@ -397,58 +354,33 @@ button{
   transform:none;
 }
 
+.loading{
+  animation:pulse 1.3s infinite;
+}
+
+@keyframes pulse{
+  50%{opacity:.45}
+}
+
 @media(max-width:900px){
-
-  .sidebar{
-    width:72px;
-  }
-
-  .brand span,
-  .nav button span{
-    display:none;
-  }
-
-  .brand{
-    justify-content:center;
-  }
-
-  .nav button{
-    text-align:center;
-  }
-
+  .sidebar{width:72px}
+  .brand span,.nav button span{display:none}
+  .brand{justify-content:center}
+  .nav button{text-align:center}
   .main{
     margin-left:72px;
     width:calc(100% - 72px);
     padding:15px;
   }
-
-  .card,
-  .card.wide{
-    grid-column:1/-1;
-  }
-
-  .form-grid{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .hero h2{
-    font-size:34px;
-  }
+  .card,.card.wide{grid-column:1/-1}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .hero h2{font-size:34px}
 }
 
 @media(max-width:600px){
-
-  .form-grid{
-    grid-template-columns:1fr;
-  }
-
-  .stats{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .hero h2{
-    font-size:29px;
-  }
+  .form-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .hero h2{font-size:29px}
 }
 </style>
 </head>
@@ -459,221 +391,133 @@ button{
 
 <aside class="sidebar">
 
-  <div class="brand">
-    <div class="logo">⚡</div>
-    <span>ViralForge</span>
-  </div>
+<div class="brand">
+<div class="logo">⚡</div>
+<span>ViralForge</span>
+</div>
 
-  <div class="nav">
+<div class="nav">
 
-    <button class="active" data-page="home">
-      🏠 <span>Dashboard</span>
-    </button>
+<button class="active" data-page="home">🏠 <span>Dashboard</span></button>
+<button data-page="studio">🎬 <span>Content Studio</span></button>
+<button data-page="hooks">🪝 <span>Hook Lab</span></button>
+<button data-page="ideas">💡 <span>Idea Lab</span></button>
+<button data-page="captions">✍️ <span>Captions</span></button>
+<button data-page="score">📊 <span>Viral Score</span></button>
+<button data-page="saved">💾 <span>Saved</span></button>
+<button data-page="settings">⚙️ <span>Settings</span></button>
 
-    <button data-page="studio">
-      🎬 <span>Content Studio</span>
-    </button>
-
-    <button data-page="hooks">
-      🪝 <span>Hook Lab</span>
-    </button>
-
-    <button data-page="ideas">
-      💡 <span>Idea Lab</span>
-    </button>
-
-    <button data-page="captions">
-      ✍️ <span>Captions</span>
-    </button>
-
-    <button data-page="score">
-      📊 <span>Viral Score</span>
-    </button>
-
-    <button data-page="saved">
-      💾 <span>Saved</span>
-    </button>
-
-    <button data-page="settings">
-      ⚙️ <span>Settings</span>
-    </button>
-
-  </div>
+</div>
 </aside>
-
 
 <main class="main">
 
 <header class="topbar">
-
-  <h1 id="pageTitle">
-    Dashboard
-  </h1>
-
-  <div class="status">
-    ● Free Local Mode
-  </div>
-
+<h1 id="pageTitle">Dashboard</h1>
+<div class="status">● AI Connected</div>
 </header>
-
-
-<!-- DASHBOARD -->
 
 <section id="home" class="page active">
 
-  <div class="hero">
+<div class="hero">
 
-    <h2>
-      Make content that
-      <span class="gradient">
-        earns the next second.
-      </span>
-    </h2>
+<h2>
+Make content that
+<span class="gradient">earns the next second.</span>
+</h2>
 
-    <p class="muted">
-      ViralForge is an all-in-one short-form content studio.
-      Generate scripts, hooks, ideas, captions and writing scores
-      directly in your browser.
-    </p>
+<p class="muted">
+ViralForge is your all-in-one short-form content studio.
+Use real AI to create scripts, hooks, ideas and captions.
+</p>
 
-    <div class="actions">
+<div class="actions">
 
-      <button class="btn primary" onclick="openPage('studio')">
-        🚀 Create Content
-      </button>
+<button class="btn primary" onclick="openPage('studio')">
+🚀 Create Content
+</button>
 
-      <button class="btn" onclick="surpriseMe()">
-        🎲 Surprise Me
-      </button>
+<button class="btn" onclick="surpriseMe()">
+🎲 Surprise Me
+</button>
 
-    </div>
+</div>
+</div>
 
-  </div>
+<div class="grid">
 
+<div class="card">
+<h3>🎬 Content Studio</h3>
+<p class="muted">Generate AI-powered short-form scripts.</p>
+<button class="btn" onclick="openPage('studio')">Open</button>
+</div>
 
-  <div class="grid">
+<div class="card">
+<h3>🪝 Hook Lab</h3>
+<p class="muted">Generate scroll-stopping openings.</p>
+<button class="btn" onclick="openPage('hooks')">Open</button>
+</div>
 
-    <div class="card">
-      <h3>🎬 Content Studio</h3>
-      <p class="muted">
-        Create three completely different script approaches.
-      </p>
+<div class="card">
+<h3>💡 Idea Lab</h3>
+<p class="muted">Generate batches of content ideas.</p>
+<button class="btn" onclick="openPage('ideas')">Open</button>
+</div>
 
-      <button class="btn" onclick="openPage('studio')">
-        Open
-      </button>
-    </div>
+<div class="card wide">
+<h3>🚀 Creator Workflow</h3>
+<p class="muted">
+Idea → Hook → Script → Caption → Score → Save → Publish
+</p>
+<p class="muted">
+AI generation is connected through your secure backend.
+</p>
+</div>
 
+<div class="card">
+<h3>🔒 Secure AI</h3>
+<p class="muted">
+Your OpenAI key stays on the backend and is never placed in this page.
+</p>
+</div>
 
-    <div class="card">
-      <h3>🪝 Hook Lab</h3>
-      <p class="muted">
-        Generate dozens of scroll-stopping openings.
-      </p>
-
-      <button class="btn" onclick="openPage('hooks')">
-        Open
-      </button>
-    </div>
-
-
-    <div class="card">
-      <h3>💡 Idea Lab</h3>
-      <p class="muted">
-        Generate batches of content ideas.
-      </p>
-
-      <button class="btn" onclick="openPage('ideas')">
-        Open
-      </button>
-    </div>
-
-
-    <div class="card wide">
-      <h3>🚀 Creator Workflow</h3>
-
-      <p class="muted">
-        Idea → Hook → Script → Caption → Score → Save → Review → Publish.
-      </p>
-
-      <p class="muted">
-        Publishing is intentionally kept separate because real automatic
-        posting requires official platform APIs, account authorization,
-        and a secure backend.
-      </p>
-    </div>
-
-
-    <div class="card">
-      <h3>🔒 Local Storage</h3>
-
-      <p class="muted">
-        Saved content stays in this browser.
-      </p>
-    </div>
-
-  </div>
-
+</div>
 </section>
-
-
-<!-- STUDIO -->
 
 <section id="studio" class="page">
 
 <div class="panel">
 
-<h2>🎬 Content Studio</h2>
+<h2>🎬 AI Content Studio</h2>
 
 <p class="muted">
-Create three different versions instead of getting the same script every time.
+Tell ViralForge what you want to make and the AI will create the content.
 </p>
-
 
 <div class="form-grid">
 
 <div class="field">
-
 <label>TOPIC</label>
-
-<input
-id="topic"
-placeholder="Example: how to get better at basketball"
->
-
+<input id="topic" placeholder="Example: how to get better at basketball">
 </div>
 
-
 <div class="field">
-
 <label>NICHE</label>
-
 <select id="niche"></select>
-
 </div>
 
-
 <div class="field">
-
 <label>PLATFORM</label>
-
 <select id="platform">
-
 <option>TikTok</option>
 <option>YouTube Shorts</option>
 <option>Instagram Reels</option>
-
 </select>
-
 </div>
 
-
 <div class="field">
-
 <label>STYLE</label>
-
 <select id="style">
-
 <option>High Energy</option>
 <option>Storytelling</option>
 <option>Educational</option>
@@ -681,77 +525,49 @@ placeholder="Example: how to get better at basketball"
 <option>Serious</option>
 <option>Bold</option>
 <option>Motivational</option>
-
 </select>
-
 </div>
 
-
 <div class="field">
-
 <label>LENGTH</label>
-
 <select id="length">
-
 <option>30 seconds</option>
 <option>45 seconds</option>
 <option>60 seconds</option>
-
 </select>
-
 </div>
 
-
 <div class="field">
-
 <label>AUDIENCE</label>
-
 <select id="audience">
-
 <option>Beginners</option>
 <option>Teens</option>
 <option>Creators</option>
 <option>Fans</option>
 <option>Everyone</option>
-
 </select>
-
 </div>
 
 </div>
-
 
 <div class="actions">
 
 <button class="btn primary" onclick="generateScripts()">
-🔥 Generate 3 Scripts
+🔥 Generate AI Content
 </button>
 
 <button class="btn" onclick="surpriseMe()">
 🎲 Random
 </button>
 
-<button class="btn" onclick="generateScripts()">
-🔄 Regenerate
-</button>
-
 </div>
-
 
 <div id="scripts">
-
-<div class="result">
-Your scripts will appear here.
+<div class="result">Your AI content will appear here.</div>
 </div>
 
 </div>
-
-</div>
-
 </section>
-
-
-<!-- HOOK LAB -->
 
 <section id="hooks" class="page">
 
@@ -759,53 +575,33 @@ Your scripts will appear here.
 
 <h2>🪝 Hook Lab</h2>
 
-<p class="muted">
-Generate 12 different hooks from a large hook library.
-</p>
-
+<p class="muted">Generate 12 different hooks.</p>
 
 <div class="form-grid">
 
 <div class="field">
-
 <label>TOPIC</label>
-
-<input
-id="hookTopic"
-placeholder="Example: growing on YouTube"
->
-
+<input id="hookTopic" placeholder="Example: growing on YouTube">
 </div>
 
-
 <div class="field">
-
 <label>NICHE</label>
-
 <select id="hookNiche"></select>
-
 </div>
 
-
 <div class="field">
-
 <label>HOOK STYLE</label>
-
 <select id="hookStyle">
-
 <option>Mixed</option>
 <option>Curiosity</option>
 <option>Story</option>
 <option>Bold</option>
 <option>Educational</option>
 <option>Question</option>
-
 </select>
-
 </div>
 
 </div>
-
 
 <div class="actions">
 
@@ -819,17 +615,13 @@ placeholder="Example: growing on YouTube"
 
 </div>
 
-
 <div id="hookOutput" class="result">
 Your hooks will appear here.
 </div>
 
-
 <div class="actions">
 
-<button class="btn" onclick="copyElement('hookOutput')">
-📋 Copy
-</button>
+<button class="btn" onclick="copyElement('hookOutput')">📋 Copy</button>
 
 <button class="btn good" onclick="saveCurrent('Hooks','hookOutput')">
 💾 Save
@@ -838,11 +630,7 @@ Your hooks will appear here.
 </div>
 
 </div>
-
 </section>
-
-
-<!-- IDEAS -->
 
 <section id="ideas" class="page">
 
@@ -850,73 +638,45 @@ Your hooks will appear here.
 
 <h2>💡 Idea Lab</h2>
 
-<p class="muted">
-Generate 20 different content concepts.
-</p>
-
+<p class="muted">Generate 20 different content concepts.</p>
 
 <div class="form-grid">
 
 <div class="field">
-
 <label>NICHE</label>
-
 <select id="ideaNiche"></select>
-
 </div>
 
-
 <div class="field">
-
 <label>PLATFORM</label>
-
 <select id="ideaPlatform">
-
 <option>TikTok</option>
 <option>YouTube Shorts</option>
 <option>Instagram Reels</option>
-
 </select>
-
 </div>
 
-
 <div class="field">
-
 <label>GOAL</label>
-
 <select id="ideaGoal">
-
 <option>Growth</option>
 <option>Education</option>
 <option>Entertainment</option>
 <option>Community</option>
 <option>Authority</option>
-
 </select>
-
 </div>
 
 </div>
-
 
 <button class="btn primary" onclick="generateIdeas()">
 💡 Generate 20 Ideas
 </button>
 
-
-<div
-id="ideaOutput"
-class="grid"
-style="margin-top:15px">
-</div>
+<div id="ideaOutput" class="grid" style="margin-top:15px"></div>
 
 </div>
-
 </section>
-
-
-<!-- CAPTIONS -->
 
 <section id="captions" class="page">
 
@@ -924,64 +684,42 @@ style="margin-top:15px">
 
 <h2>✍️ Caption Maker</h2>
 
-
 <div class="form-grid">
 
 <div class="field">
-
 <label>TOPIC</label>
-
-<input
-id="captionTopic"
-placeholder="Example: my first viral video"
->
-
+<input id="captionTopic" placeholder="Example: my first viral video">
 </div>
 
-
 <div class="field">
-
 <label>TONE</label>
-
 <select id="captionTone">
-
 <option>Confident</option>
 <option>Funny</option>
 <option>Curious</option>
 <option>Motivational</option>
 <option>Storytelling</option>
-
 </select>
-
 </div>
 
-
 <div class="field">
-
 <label>PLATFORM</label>
-
 <select id="captionPlatform">
-
 <option>TikTok</option>
 <option>Instagram</option>
 <option>YouTube</option>
-
 </select>
-
 </div>
 
 </div>
-
 
 <button class="btn primary" onclick="generateCaption()">
 ✍️ Generate Caption
 </button>
 
-
 <div id="captionOutput" class="result">
 Your caption will appear here.
 </div>
-
 
 <div class="actions">
 
@@ -989,20 +727,14 @@ Your caption will appear here.
 📋 Copy
 </button>
 
-<button
-class="btn good"
-onclick="saveCurrent('Caption','captionOutput')">
+<button class="btn good" onclick="saveCurrent('Caption','captionOutput')">
 💾 Save
 </button>
 
 </div>
 
 </div>
-
 </section>
-
-
-<!-- SCORE -->
 
 <section id="score" class="page">
 
@@ -1011,103 +743,59 @@ onclick="saveCurrent('Caption','captionOutput')">
 <h2>📊 Viral Score</h2>
 
 <p class="muted">
-This is a writing heuristic. No tool can guarantee that a video will go viral.
+This is a writing heuristic. It cannot guarantee views.
 </p>
-
 
 <div class="field">
 
 <label>CONTENT</label>
 
-<textarea
-id="scoreText"
-placeholder="Paste your script, hook or caption here..."
-></textarea>
+<textarea id="scoreText" placeholder="Paste your script, hook or caption here..."></textarea>
 
 </div>
-
 
 <button class="btn primary" onclick="analyzeScore()">
 📊 Analyze
 </button>
 
+<div style="display:flex;align-items:center;gap:20px;margin-top:18px;">
 
-<div
-style="
-display:flex;
-align-items:center;
-gap:20px;
-margin-top:18px;
-">
-
-<div id="scoreNumber" class="score-number">
---
-</div>
+<div id="scoreNumber" class="score-number">--</div>
 
 <div style="flex:1">
-
-<div class="bar">
-<i id="scoreBar"></i>
+<div class="bar"><i id="scoreBar"></i></div>
 </div>
 
 </div>
-
-</div>
-
 
 <div id="scoreOutput" class="result">
 Your analysis will appear here.
 </div>
 
-
 <div id="scoreStats" class="stats"></div>
 
 </div>
-
 </section>
-
-
-<!-- SAVED -->
 
 <section id="saved" class="page">
 
 <div class="panel">
 
-<div
-style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
 
 <div>
-
 <h2>💾 Saved Content</h2>
+<p class="muted">Saved locally in this browser.</p>
+</div>
 
-<p class="muted">
-Saved locally in this browser.
-</p>
+<button class="btn danger" onclick="clearSaved()">Clear All</button>
 
 </div>
 
-
-<button class="btn danger" onclick="clearSaved()">
-Clear All
-</button>
+<div id="savedOutput" class="history"></div>
 
 </div>
-
-
-<div id="savedOutput" class="history">
-</div>
-
-</div>
-
 </section>
-
-
-<!-- SETTINGS -->
 
 <section id="settings" class="page">
 
@@ -1115,19 +803,14 @@ Clear All
 
 <h2>⚙️ Settings</h2>
 
-<p class="muted">
-Customize your local ViralForge experience.
-</p>
-
+<p class="muted">Customize your ViralForge experience.</p>
 
 <div class="field">
 
 <label>DEFAULT NICHE</label>
-
 <select id="defaultNiche"></select>
 
 </div>
-
 
 <div class="actions">
 
@@ -1141,62 +824,40 @@ Reset
 
 </div>
 
-
 <div class="result">
 
-<b>Important:</b>
+<b>AI Backend:</b>
 
-ViralForge is currently a static browser application.
-Real AI APIs and automatic publishing require secure server-side
-connections and official platform authorization.
+<br><br>
 
-Never put private API keys or social-media access tokens directly
-inside a public GitHub HTML file.
+Connected to the secure ViralForge backend.
+
+<br><br>
+
+Your API key is not stored inside this website.
 
 </div>
 
 </div>
-
 </section>
 
 </main>
-
 </div>
-
 
 <div id="toast"></div>
 
-
 <script>
 
-/* =========================
-   BASIC APP
-========================= */
+const API_URL =
+"https://viralforge-backend-nl1f.onrender.com";
 
 const niches=[
-"General",
-"Gaming",
-"Sports",
-"Education",
-"Fitness",
-"Storytime",
-"Money",
-"Tech",
-"Entertainment",
-"Motivation",
-"Creators",
-"Beauty",
-"Food",
-"Travel",
-"Music"
+"General","Gaming","Sports","Education","Fitness",
+"Storytime","Money","Tech","Entertainment","Motivation",
+"Creators","Beauty","Food","Travel","Music"
 ];
 
-[
-"niche",
-"hookNiche",
-"ideaNiche",
-"defaultNiche"
-].forEach(id=>{
+["niche","hookNiche","ideaNiche","defaultNiche"].forEach(id=>{
 
 const select=document.getElementById(id);
 
@@ -1205,7 +866,6 @@ select.add(new Option(n,n));
 });
 
 });
-
 
 const pageNames={
 home:"Dashboard",
@@ -1218,66 +878,41 @@ saved:"Saved Content",
 settings:"Settings"
 };
 
-
 function openPage(id){
 
-document.querySelectorAll(".page")
-.forEach(page=>{
+document.querySelectorAll(".page").forEach(page=>{
 page.classList.remove("active");
 });
 
-document.getElementById(id)
-.classList.add("active");
+document.getElementById(id).classList.add("active");
 
-
-document.querySelectorAll(".nav button")
-.forEach(button=>{
-button.classList.toggle(
-"active",
-button.dataset.page===id
-);
+document.querySelectorAll(".nav button").forEach(button=>{
+button.classList.toggle("active",button.dataset.page===id);
 });
 
+document.getElementById("pageTitle").textContent=pageNames[id];
 
-document.getElementById("pageTitle")
-.textContent=pageNames[id];
+if(id==="saved") renderSaved();
 
-if(id==="saved"){
-renderSaved();
+window.scrollTo({top:0,behavior:"smooth"});
 }
 
-window.scrollTo({
-top:0,
-behavior:"smooth"
+document.querySelectorAll(".nav button").forEach(button=>{
+button.onclick=()=>openPage(button.dataset.page);
 });
-
-}
-
-
-document.querySelectorAll(".nav button")
-.forEach(button=>{
-
-button.onclick=()=>{
-openPage(button.dataset.page);
-};
-
-});
-
 
 function toast(message){
 
 const box=document.getElementById("toast");
 
 box.textContent=message;
-
 box.classList.add("show");
 
 setTimeout(()=>{
 box.classList.remove("show");
-},1800);
+},2000);
 
 }
-
 
 function escapeHTML(text){
 
@@ -1290,197 +925,180 @@ return String(text)
 
 }
 
-
 function copyText(text){
 
 if(!text)return;
 
-navigator.clipboard
-?.writeText(text)
-.then(()=>{
-toast("Copied!");
-})
-.catch(()=>{
-toast("Copy failed");
-});
+navigator.clipboard.writeText(text)
+.then(()=>toast("Copied!"))
+.catch(()=>toast("Copy failed"));
 
 }
-
 
 function copyElement(id){
 
 const element=document.getElementById(id);
 
-if(!element)return;
-
-copyText(element.innerText);
+if(element) copyText(element.innerText);
 
 }
-
 
 /* =========================
-   SAVED CONTENT
+   REAL AI CONTENT STUDIO
 ========================= */
 
-function saveContent(type,text){
+async function generateScripts(){
 
-if(!text)return;
+const topic=document.getElementById("topic").value.trim();
+const niche=document.getElementById("niche").value;
+const platform=document.getElementById("platform").value;
+const style=document.getElementById("style").value;
+const length=document.getElementById("length").value;
+const audience=document.getElementById("audience").value;
 
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
+const output=document.getElementById("scripts");
 
-saved.unshift({
-type,
-text,
-date:new Date().toLocaleString()
-});
+if(!topic){
 
-localStorage.setItem(
-"viralforgeSaved",
-JSON.stringify(saved.slice(0,100))
-);
-
-toast("Saved!");
-
-}
-
-
-function saveCurrent(type,id){
-
-const element=document.getElementById(id);
-
-if(element){
-saveContent(type,element.innerText);
-}
-
-}
-
-
-function renderSaved(){
-
-const output=document.getElementById("savedOutput");
-
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
-
-if(!saved.length){
-
-output.innerHTML=
-`<div class="result">
-Nothing saved yet.
-</div>`;
+toast("Enter a topic first!");
 
 return;
 
 }
 
+output.innerHTML=`
+<div class="result loading">
+🤖 ViralForge AI is creating your content...
+<br><br>
+Writing hooks, scripts, titles, descriptions and CTAs.
+</div>
+`;
 
-output.innerHTML=saved.map((item,index)=>{
+try{
 
-return `
+const response=await fetch(
+API_URL+"/api/generate",
+{
+method:"POST",
 
-<div class="history-item">
+headers:{
+"Content-Type":"application/json"
+},
 
-<div>
+body:JSON.stringify({
+topic,
+niche,
+platform,
+style,
+length,
+audience
+})
+}
+);
 
-<b>${escapeHTML(item.type)}</b>
+const data=await response.json();
 
-<br>
+if(!response.ok){
 
-<small class="muted">
-${escapeHTML(item.date)}
-</small>
+throw new Error(
+data.error||"AI server error"
+);
 
-<p class="muted">
-${escapeHTML(
-item.text.substring(0,250)
-)}
-${item.text.length>250?"...":""}
-</p>
+}
 
+if(!data.result){
+
+throw new Error(
+"No AI content was returned."
+);
+
+}
+
+const script=data.result;
+
+output.innerHTML="";
+
+const div=document.createElement("div");
+
+div.className="variation";
+
+div.innerHTML=`
+
+<div class="variation-head">
+
+<b>🤖 ViralForge AI</b>
+
+<span class="badge">
+${escapeHTML(platform)}
+</span>
+
+</div>
+
+<div class="result">
+${escapeHTML(script)}
 </div>
 
 <div class="actions">
 
-<button
-class="btn"
-onclick="copySaved(${index})">
-Copy
+<button class="btn"
+onclick='copyText(${JSON.stringify(script)})'>
+📋 Copy
 </button>
 
-<button
-class="btn danger"
-onclick="deleteSaved(${index})">
-Delete
+<button class="btn good"
+onclick='saveContent("AI Script",${JSON.stringify(script)})'>
+💾 Save
+</button>
+
+<button class="btn"
+onclick='
+document.getElementById("scoreText").value=${JSON.stringify(script)};
+openPage("score");
+'>
+📊 Score
 </button>
 
 </div>
-
-</div>
-
 `;
 
-}).join("");
+output.appendChild(div);
+
+toast("🔥 AI content generated!");
 
 }
 
+catch(error){
 
-function copySaved(index){
+console.error(error);
 
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
+output.innerHTML=`
 
-copyText(saved[index].text);
+<div class="result">
 
-}
+❌ <b>AI generation failed.</b>
 
+<br><br>
 
-function deleteSaved(index){
+${escapeHTML(error.message)}
 
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
+<br><br>
 
-saved.splice(index,1);
+Check your Render backend and make sure it is running.
 
-localStorage.setItem(
-"viralforgeSaved",
-JSON.stringify(saved)
-);
+</div>
+`;
 
-renderSaved();
-
-toast("Deleted");
+toast("AI generation failed");
 
 }
 
-
-function clearSaved(){
-
-if(!confirm("Delete all saved content?"))return;
-
-localStorage.removeItem("viralforgeSaved");
-
-renderSaved();
-
-toast("All saved content cleared");
-
 }
-
 
 /* =========================
-   HOOK ENGINE
+   HOOKS
 ========================= */
 
 const hooks=[
-
 t=>`Stop scrolling if you want to understand ${t}.`,
 t=>`Most people get ${t} completely wrong.`,
 t=>`I wish I knew this before I started ${t}.`,
@@ -1500,89 +1118,8 @@ t=>`Don't waste another day doing ${t} this way.`,
 t=>`If you're struggling with ${t}, try this.`,
 t=>`This is why your ${t} isn't working.`,
 t=>`Want better results with ${t}? Start here.`,
-t=>`Here's what nobody warned me about ${t}.`,
-t=>`I made every mistake possible with ${t}.`,
-t=>`Let's settle this: here's what actually works for ${t}.`,
-t=>`You only need these three things for ${t}.`,
-t=>`Here's the shortcut I wish I found sooner for ${t}.`,
-t=>`This is your sign to finally learn ${t}.`,
-t=>`If you're new to ${t}, remember this.`,
-t=>`Here's a better way to approach ${t}.`,
-t=>`This one idea makes ${t} much easier.`,
-t=>`I learned this the hard way with ${t}.`,
-t=>`Don't copy everyone else doing ${t}.`,
-t=>`Here's the difference between good and great ${t}.`,
-t=>`Let me save you hours of frustration with ${t}.`,
-t=>`This might change your mind about ${t}.`,
-t=>`The easiest way to improve ${t} starts here.`,
-t=>`If I could give one tip about ${t}, it would be this.`,
-t=>`Here's the honest truth about ${t}.`,
-t=>`If ${t} feels confusing, watch this.`,
-t=>`One rule completely changed how I approach ${t}.`,
-t=>`This is what I'd do differently with ${t}.`,
-t=>`You're overcomplicating ${t}.`,
-t=>`Here's the part of ${t} that actually matters.`,
-t=>`The simple formula behind better ${t}.`,
-t=>`I didn't believe this about ${t} until I tested it.`,
-t=>`Here's the beginner-friendly version of ${t}.`,
-t=>`If you have five minutes, learn this about ${t}.`,
-t=>`The fastest way to spot a bad ${t} strategy.`,
-t=>`One small change can improve ${t}.`,
-t=>`This is the first thing I'd fix about ${t}.`,
-t=>`What happens when you stop doing ${t} the usual way?`,
-t=>`Here's the question everyone should ask about ${t}.`,
-t=>`You don't need to be an expert to start ${t}.`,
-t=>`Here's your warning before you try ${t}.`,
-t=>`Here's a smarter way to think about ${t}.`,
-t=>`The part of ${t} nobody notices.`,
-t=>`I spent way too long learning this about ${t}.`,
-t=>`Here's what I'd tell my past self about ${t}.`,
-t=>`One lesson from ${t} I won't forget.`,
-t=>`If I could only teach one thing about ${t}, it would be this.`,
-t=>`Here's why ${t} feels harder than it really is.`,
-t=>`Try this before you give up on ${t}.`,
-t=>`This is the mistake holding back your ${t}.`,
-t=>`The unpopular truth about ${t}.`,
-t=>`Here's the part you can actually control with ${t}.`,
-t=>`You probably haven't tried ${t} like this.`,
-t=>`Let's break ${t} down without the confusing stuff.`,
-t=>`Here's the 30-second version of ${t}.`,
-t=>`The biggest lesson I learned from ${t}.`,
-t=>`Here's what I would never do with ${t}.`,
-t=>`Three signs you're doing ${t} wrong.`,
-t=>`Three signs you're doing ${t} right.`,
-t=>`If you're serious about ${t}, listen to this.`,
-t=>`Here's the difference one decision can make in ${t}.`,
-t=>`I wish someone had shown me this about ${t}.`,
-t=>`The easiest mistake to avoid with ${t}.`,
-t=>`Here's a better first step for ${t}.`,
-t=>`Before you spend more time on ${t}, do this.`,
-t=>`This sounds obvious, but most people skip it with ${t}.`,
-t=>`The secret isn't what you think with ${t}.`,
-t=>`Here's the most underrated part of ${t}.`,
-t=>`Why does nobody explain ${t} this way?`,
-t=>`The real reason ${t} isn't working.`,
-t=>`Here's what changes when you understand ${t}.`,
-t=>`If you're stuck with ${t}, start here.`,
-t=>`This is how I'd simplify ${t}.`,
-t=>`One question can completely change ${t}.`,
-t=>`The beginner mistake I see with ${t}.`,
-t=>`Here's the fastest reality check for ${t}.`,
-t=>`Don't make this mistake twice with ${t}.`,
-t=>`The advice about ${t} I'd ignore.`,
-t=>`Here's the advice about ${t} I'd actually follow.`,
-t=>`What I learned after trying ${t}.`,
-t=>`Here's what surprised me most about ${t}.`,
-t=>`You can make ${t} easier today.`,
-t=>`Let's make ${t} ridiculously simple.`,
-t=>`Here's the one thing I'd focus on first with ${t}.`,
-t=>`If you remember one thing about ${t}, remember this.`,
-t=>`Here's a practical way to improve ${t}.`,
-t=>`The no-fluff guide to ${t}.`,
-t=>`Here's what actually matters when it comes to ${t}.`
-
+t=>`Here's what nobody warned me about ${t}.`
 ];
-
 
 function shuffle(array){
 
@@ -1592,43 +1129,30 @@ for(let i=copy.length-1;i>0;i--){
 
 const j=Math.floor(Math.random()*(i+1));
 
-[copy[i],copy[j]]=
-[copy[j],copy[i]];
+[copy[i],copy[j]]=[copy[j],copy[i]];
 
 }
 
 return copy;
-
 }
-
 
 function generateHooks(){
 
-const topic=
-document.getElementById("hookTopic")
-.value.trim()||
-"this topic";
+const topic=document.getElementById("hookTopic").value.trim()||"this topic";
 
-const results=
-shuffle(hooks)
+const results=shuffle(hooks)
 .slice(0,12)
 .map(fn=>fn(topic));
 
-document.getElementById("hookOutput")
-.innerText=
-results
-.map((hook,index)=>
-`${index+1}. ${hook}`
-)
-.join("\n\n");
+document.getElementById("hookOutput").innerText=
+results.map((hook,index)=>`${index+1}. ${hook}`).join("\n\n");
 
 toast("12 hooks generated");
 
 }
 
-
 /* =========================
-   SCRIPT ENGINE
+   IDEAS
 ========================= */
 
 const nicheIdeas={
@@ -1699,261 +1223,37 @@ Creators:[
 
 };
 
-
-function generateScripts(){
-
-const topic=
-document.getElementById("topic")
-.value.trim()||
-"this topic";
-
-const niche=
-document.getElementById("niche").value;
-
-const platform=
-document.getElementById("platform").value;
-
-const style=
-document.getElementById("style").value;
-
-const length=
-document.getElementById("length").value;
-
-const audience=
-document.getElementById("audience").value;
-
-
-const approaches=[
-"Curiosity",
-"Story",
-"Practical"
-];
-
-
-const output=
-document.getElementById("scripts");
-
-
-output.innerHTML="";
-
-
-approaches.forEach((approach,index)=>{
-
-const hook=
-shuffle(hooks)[index](topic);
-
-let body="";
-
-
-if(approach==="Curiosity"){
-
-body=
-`Most people approach ${topic} by doing too much at once.
-
-Instead, focus on one specific change, test it, and pay attention to the result.
-
-The goal isn't to make the process complicated.
-
-The goal is to make the next step obvious.`;
-
-}
-
-
-if(approach==="Story"){
-
-body=
-`I used to think ${topic} required a complicated strategy.
-
-Then I realized I was focusing on the wrong thing.
-
-Once I simplified the process and actually paid attention to what worked, everything became easier to understand.
-
-That's the part I wish I knew earlier.`;
-
-}
-
-
-if(approach==="Practical"){
-
-body=
-`If you're a ${audience.toLowerCase()} working on ${topic}, start with the basics.
-
-Pick one goal.
-
-Use a repeatable process.
-
-Measure what happens.
-
-Then adjust.
-
-Simple systems are easier to improve than chaotic ones.`;
-
-}
-
-
-const script=
-`HOOK
-
-"${hook}"
-
-
-SETUP
-
-Let's break down ${topic} without making it complicated.
-
-
-VALUE
-
-${body}
-
-
-PAYOFF
-
-The biggest takeaway is simple:
-
-Don't try to fix everything at once.
-
-Find the one change that gives you the clearest result, then build from there.
-
-
-CTA
-
-Save this so you can come back to it later.
-
-Follow for more ${niche.toLowerCase()} content.
-
-
-FORMAT
-
-${platform}
-${length}
-${style}
-${niche}`;
-
-
-const div=
-document.createElement("div");
-
-div.className="variation";
-
-
-div.innerHTML=`
-
-<div class="variation-head">
-
-<b>
-Variation ${index+1} — ${approach}
-</b>
-
-<span class="badge">
-${escapeHTML(platform)}
-</span>
-
-</div>
-
-<div class="result">
-${escapeHTML(script)}
-</div>
-
-<div class="actions">
-
-<button
-class="btn"
-onclick="copyText(${JSON.stringify(script)})">
-📋 Copy
-</button>
-
-<button
-class="btn good"
-onclick="saveContent('Script',${JSON.stringify(script)})">
-💾 Save
-</button>
-
-<button
-class="btn"
-onclick="document.getElementById('scoreText').value=${JSON.stringify(script)};openPage('score')">
-📊 Score
-</button>
-
-</div>
-`;
-
-
-output.appendChild(div);
-
-});
-
-
-toast("3 scripts generated");
-
-}
-
-
-/* =========================
-   IDEA LAB
-========================= */
-
 function generateIdeas(){
 
-const niche=
-document.getElementById("ideaNiche").value;
+const niche=document.getElementById("ideaNiche").value;
+const goal=document.getElementById("ideaGoal").value;
+const platform=document.getElementById("ideaPlatform").value;
 
-const goal=
-document.getElementById("ideaGoal").value;
-
-const platform=
-document.getElementById("ideaPlatform").value;
-
-const base=
-nicheIdeas[niche]||
-nicheIdeas.General;
-
+const base=nicheIdeas[niche]||nicheIdeas.General;
 
 const angles=[
-"Quick List",
-"Story",
-"Myth vs Fact",
-"Beginner Guide",
-"Mistake",
-"Challenge",
-"Before vs After",
-"Question",
-"Experiment",
-"Unpopular Take",
-"Tutorial",
-"Checklist",
-"Reaction",
-"Case Study",
-"Comparison",
-"Prediction",
-"Do / Don't",
-"Ranking",
-"Explained",
-"Test"
+"Quick List","Story","Myth vs Fact","Beginner Guide","Mistake",
+"Challenge","Before vs After","Question","Experiment","Unpopular Take",
+"Tutorial","Checklist","Reaction","Case Study","Comparison",
+"Prediction","Do / Don't","Ranking","Explained","Test"
 ];
 
-
-const output=
-document.getElementById("ideaOutput");
+const output=document.getElementById("ideaOutput");
 
 output.innerHTML="";
-
 
 for(let i=0;i<20;i++){
 
 const idea=
 `${base[i%base.length]} — ${niche} edition`;
 
-const card=
-document.createElement("div");
+const card=document.createElement("div");
 
 card.className="idea card";
 
 card.innerHTML=`
 
-<b>
-${i+1}. ${angles[i]}
-</b>
+<b>${i+1}. ${angles[i]}</b>
 
 <span class="muted">
 ${escapeHTML(idea)}
@@ -1965,16 +1265,12 @@ Goal: ${escapeHTML(goal)}
 Platform: ${escapeHTML(platform)}
 </p>
 
-<button class="btn">
-📋 Copy
-</button>
+<button class="btn">📋 Copy</button>
 `;
-
 
 card.querySelector("button").onclick=()=>{
 copyText(idea);
 };
-
 
 output.appendChild(card);
 
@@ -1984,75 +1280,41 @@ toast("20 ideas generated");
 
 }
 
-
 /* =========================
    CAPTIONS
 ========================= */
 
 function generateCaption(){
 
-const topic=
-document.getElementById("captionTopic")
-.value.trim()||
-"this topic";
+const topic=document.getElementById("captionTopic").value.trim()||"this topic";
 
-const tone=
-document.getElementById("captionTone")
-.value;
+const tone=document.getElementById("captionTone").value;
 
-const platform=
-document.getElementById("captionPlatform")
-.value;
-
+const platform=document.getElementById("captionPlatform").value;
 
 let opening="";
 
-
 if(tone==="Funny"){
-
-opening=
-`Okay, let's be honest 😂 ${topic} is not as simple as it looks.`;
-
+opening=`Okay, let's be honest 😂 ${topic} is not as simple as it looks.`;
 }else if(tone==="Curious"){
-
-opening=
-`There's something about ${topic} that most people don't notice.`;
-
+opening=`There's something about ${topic} that most people don't notice.`;
 }else if(tone==="Motivational"){
-
-opening=
-`Small progress still counts. Here's what ${topic} taught me.`;
-
+opening=`Small progress still counts. Here's what ${topic} taught me.`;
 }else if(tone==="Storytelling"){
-
-opening=
-`I didn't expect ${topic} to teach me this, but here's what happened.`;
-
+opening=`I didn't expect ${topic} to teach me this, but here's what happened.`;
 }else{
-
-opening=
-`Here's my take on ${topic}.`;
-
+opening=`Here's my take on ${topic}.`;
 }
-
 
 let hashtags="";
 
-
 if(platform==="TikTok"){
-
 hashtags="#fyp #creator #content #tips";
-
 }else if(platform==="Instagram"){
-
 hashtags="#reels #creator #content #explore";
-
 }else{
-
 hashtags="#shorts #youtube #creator #content";
-
 }
-
 
 const caption=
 `${opening}
@@ -2070,34 +1332,24 @@ Save this for later.
 
 ${hashtags}`;
 
-
-document.getElementById("captionOutput")
-.innerText=caption;
+document.getElementById("captionOutput").innerText=caption;
 
 toast("Caption generated");
 
 }
 
-
 /* =========================
-   VIRAL SCORE
+   SCORE
 ========================= */
 
 function analyzeScore(){
 
-const text=
-document.getElementById("scoreText")
-.value.trim();
-
+const text=document.getElementById("scoreText").value.trim();
 
 if(!text){
-
 toast("Paste some content first");
-
 return;
-
 }
-
 
 let hook=0;
 let curiosity=0;
@@ -2105,159 +1357,59 @@ let specificity=0;
 let cta=0;
 let readability=0;
 
-
-if(
-/^(stop|here|this|if|most|before|nobody|why|how|i )/i
-.test(text)
-){
-
+if(/^(stop|here|this|if|most|before|nobody|why|how|i )/i.test(text)){
 hook=20;
-
 }else if(text.length>30){
-
 hook=12;
-
 }
 
-
-if(
-/[?!]|\b(secret|mistake|truth|nobody|why|before|unexpected)\b/i
-.test(text)
-){
-
+if(/[?!]|\b(secret|mistake|truth|nobody|why|before|unexpected)\b/i.test(text)){
 curiosity=20;
-
 }else{
-
 curiosity=8;
-
 }
 
-
-if(
-/\b\d+\b|\b(steps|ways|tips|examples|reasons)\b/i
-.test(text)
-){
-
+if(/\b\d+\b|\b(steps|ways|tips|examples|reasons)\b/i.test(text)){
 specificity=20;
-
 }else{
-
 specificity=8;
-
 }
 
-
-if(
-/\b(follow|comment|save|share|subscribe|like)\b/i
-.test(text)
-){
-
+if(/\b(follow|comment|save|share|subscribe|like)\b/i.test(text)){
 cta=20;
-
 }else{
-
 cta=5;
-
 }
 
-
-const sentences=
-text
-.split(/[.!?]+/)
-.filter(Boolean);
-
+const sentences=text.split(/[.!?]+/).filter(Boolean);
 
 if(sentences.length>=2){
-
 readability=15;
-
 }else{
-
 readability=8;
-
 }
 
-
-const total=
-Math.min(
+const total=Math.min(
 100,
-25+
-hook+
-curiosity+
-specificity+
-cta+
-readability
+25+hook+curiosity+specificity+cta+readability
 );
 
-
-document.getElementById("scoreNumber")
-.innerText=total;
-
-
-document.getElementById("scoreBar")
-.style.width=total+"%";
-
+document.getElementById("scoreNumber").innerText=total;
+document.getElementById("scoreBar").style.width=total+"%";
 
 let notes=[];
 
-
-if(hook<18){
-
-notes.push(
-"Make the first line more direct."
-);
-
-}
-
-
-if(curiosity<16){
-
-notes.push(
-"Add a curiosity gap or specific question."
-);
-
-}
-
-
-if(specificity<16){
-
-notes.push(
-"Add a number, example or concrete detail."
-);
-
-}
-
-
-if(cta<16){
-
-notes.push(
-"Add a clear action for the viewer."
-);
-
-}
-
-
-if(readability<12){
-
-notes.push(
-"Break the content into shorter beats."
-);
-
-}
-
+if(hook<18)notes.push("Make the first line more direct.");
+if(curiosity<16)notes.push("Add a curiosity gap or specific question.");
+if(specificity<16)notes.push("Add a number, example or concrete detail.");
+if(cta<16)notes.push("Add a clear action for the viewer.");
+if(readability<12)notes.push("Break the content into shorter beats.");
 
 if(!notes.length){
-
-notes.push(
-"Strong balance across the checked writing signals."
-);
-
+notes.push("Strong balance across the checked writing signals.");
 }
 
-
-document.getElementById("scoreOutput")
-.innerText=
+document.getElementById("scoreOutput").innerText=
 `Score: ${total}/100
 
 ${notes.map(x=>"• "+x).join("\n")}
@@ -2265,46 +1417,154 @@ ${notes.map(x=>"• "+x).join("\n")}
 This score checks writing signals only.
 It cannot predict views or guarantee virality.`;
 
+document.getElementById("scoreStats").innerHTML=`
 
-document.getElementById("scoreStats")
-.innerHTML=`
-
-<div class="stat">
-<b>${hook}</b>
-<span>Hook</span>
-</div>
-
-<div class="stat">
-<b>${curiosity}</b>
-<span>Curiosity</span>
-</div>
-
-<div class="stat">
-<b>${specificity}</b>
-<span>Specificity</span>
-</div>
-
-<div class="stat">
-<b>${cta}</b>
-<span>CTA</span>
-</div>
-
+<div class="stat"><b>${hook}</b><span>Hook</span></div>
+<div class="stat"><b>${curiosity}</b><span>Curiosity</span></div>
+<div class="stat"><b>${specificity}</b><span>Specificity</span></div>
+<div class="stat"><b>${cta}</b><span>CTA</span></div>
 `;
-
 
 toast("Content analyzed");
 
 }
 
+/* =========================
+   SAVED
+========================= */
+
+function saveContent(type,text){
+
+if(!text)return;
+
+const saved=
+JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
+
+saved.unshift({
+type,
+text,
+date:new Date().toLocaleString()
+});
+
+localStorage.setItem(
+"viralforgeSaved",
+JSON.stringify(saved.slice(0,100))
+);
+
+toast("Saved!");
+
+}
+
+function saveCurrent(type,id){
+
+const element=document.getElementById(id);
+
+if(element){
+saveContent(type,element.innerText);
+}
+
+}
+
+function renderSaved(){
+
+const output=document.getElementById("savedOutput");
+
+const saved=
+JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
+
+if(!saved.length){
+
+output.innerHTML=
+`<div class="result">Nothing saved yet.</div>`;
+
+return;
+
+}
+
+output.innerHTML=saved.map((item,index)=>`
+
+<div class="history-item">
+
+<div>
+
+<b>${escapeHTML(item.type)}</b>
+
+<br>
+
+<small class="muted">
+${escapeHTML(item.date)}
+</small>
+
+<p class="muted">
+${escapeHTML(item.text.substring(0,250))}
+${item.text.length>250?"...":""}
+</p>
+
+</div>
+
+<div class="actions">
+
+<button class="btn" onclick="copySaved(${index})">
+Copy
+</button>
+
+<button class="btn danger" onclick="deleteSaved(${index})">
+Delete
+</button>
+
+</div>
+
+</div>
+
+`).join("");
+
+}
+
+function copySaved(index){
+
+const saved=
+JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
+
+copyText(saved[index].text);
+
+}
+
+function deleteSaved(index){
+
+const saved=
+JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
+
+saved.splice(index,1);
+
+localStorage.setItem(
+"viralforgeSaved",
+JSON.stringify(saved)
+);
+
+renderSaved();
+toast("Deleted");
+
+}
+
+function clearSaved(){
+
+if(!confirm("Delete all saved content?"))return;
+
+localStorage.removeItem("viralforgeSaved");
+
+renderSaved();
+
+toast("All saved content cleared");
+
+}
 
 /* =========================
-   RANDOMIZER
+   RANDOM
 ========================= */
 
 function surpriseMe(){
 
 const topics=[
-
 "3 mistakes beginners make in gaming",
 "how to get better at basketball",
 "a study trick that actually helps",
@@ -2315,21 +1575,11 @@ const topics=[
 "how to make better short videos",
 "the biggest creator mistake",
 "something nobody tells beginners"
-
 ];
 
+const topic=topics[Math.floor(Math.random()*topics.length)];
 
-const topic=
-topics[
-Math.floor(
-Math.random()*topics.length
-)
-];
-
-
-document.getElementById("topic")
-.value=topic;
-
+document.getElementById("topic").value=topic;
 
 openPage("studio");
 
@@ -2337,11 +1587,9 @@ toast("Random idea loaded");
 
 }
 
-
 function randomHook(){
 
 const topics=[
-
 "growing on YouTube",
 "getting better at basketball",
 "learning faster",
@@ -2350,23 +1598,14 @@ const topics=[
 "making better videos",
 "staying consistent",
 "getting more views"
-
 ];
 
-
-document.getElementById("hookTopic")
-.value=
-topics[
-Math.floor(
-Math.random()*topics.length
-)
-];
-
+document.getElementById("hookTopic").value=
+topics[Math.floor(Math.random()*topics.length)];
 
 generateHooks();
 
 }
-
 
 /* =========================
    SETTINGS
@@ -2383,41 +1622,28 @@ toast("Settings saved");
 
 }
 
-
 function resetSettings(){
 
-localStorage.removeItem(
-"viralforgeDefaultNiche"
-);
+localStorage.removeItem("viralforgeDefaultNiche");
 
-document.getElementById("defaultNiche")
-.value="General";
+document.getElementById("defaultNiche").value="General";
 
 toast("Settings reset");
 
 }
 
-
 const savedNiche=
-localStorage.getItem(
-"viralforgeDefaultNiche"
-);
+localStorage.getItem("viralforgeDefaultNiche");
 
 if(savedNiche){
-
-document.getElementById("defaultNiche")
-.value=savedNiche;
-
+document.getElementById("defaultNiche").value=savedNiche;
 }
 
-
 /* =========================
-   KEYBOARD SHORTCUTS
+   KEYBOARD
 ========================= */
 
-document.addEventListener(
-"keydown",
-event=>{
+document.addEventListener("keydown",event=>{
 
 if(
 (event.ctrlKey||event.metaKey)&&
@@ -2428,16 +1654,14 @@ event.preventDefault();
 
 openPage("studio");
 
-document.getElementById("topic")
-.focus();
+document.getElementById("topic").focus();
 
 }
 
 });
 
-
 /* =========================
-   STARTUP
+   START
 ========================= */
 
 renderSaved();
