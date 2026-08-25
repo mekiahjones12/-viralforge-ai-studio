@@ -1,204 +1,1788 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#07090f">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ViralForge AI Studio</title>
+<meta name="description" content="ViralForge AI Studio - create hooks, scripts, captions and viral content ideas.">
+
 <style>
-*{box-sizing:border-box}body{margin:0;background:#07090f;color:#f7f8fc;font-family:Inter,system-ui,-apple-system,sans-serif}
-button,input,select,textarea{font:inherit}.app{min-height:100vh;display:flex}.side{width:245px;border-right:1px solid #202531;padding:20px;background:#0a0d14;position:sticky;top:0;height:100vh}
-.brand{font-weight:900;font-size:20px;margin-bottom:28px}.brand i{color:#8b6cff;font-style:normal}.nav button{display:block;width:100%;text-align:left;background:none;border:0;color:#9ca5b5;padding:12px;border-radius:10px;margin:3px 0;cursor:pointer}.nav button.active,.nav button:hover{background:#171b27;color:#fff}
-.main{flex:1;padding:24px;max-width:1400px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.top h1{margin:0;font-size:30px}.status{color:#54e39a;font-size:13px;margin-top:4px}
-.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:20px}.card{background:#0e121b;border:1px solid #202531;border-radius:16px;padding:18px}.card h2{font-size:16px;margin:0 0 15px}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{background:#0a0d14;border:1px solid #202531;border-radius:12px;padding:13px}.stat b{font-size:22px;display:block}.stat span,.small{font-size:11px;color:#8e98a9}
-.field{margin:11px 0}.field label{display:block;color:#8e98a9;font-size:12px;margin-bottom:6px}input,select,textarea{width:100%;background:#0a0d14;border:1px solid #29303d;color:#fff;padding:11px;border-radius:9px}textarea{min-height:100px;resize:vertical}
-.primary{background:#7657ff;border:0;color:white;padding:11px 15px;border-radius:9px;font-weight:800;cursor:pointer}.secondary{background:#1a202b;border:1px solid #2b3340;color:#fff;padding:11px 15px;border-radius:9px;cursor:pointer}.danger{background:#39202a;border:1px solid #673242;color:#ffb7c8;padding:11px 15px;border-radius:9px;cursor:pointer}.actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
-.toggle{display:flex;justify-content:space-between;background:#0a0d14;border:1px solid #29303d;padding:12px;border-radius:10px}.toggle input{width:auto}.queue{display:grid;gap:9px}.video{padding:13px;border:1px solid #222a37;border-radius:11px;background:#0a0d14}.meta{color:#8e98a9;font-size:11px;margin-top:5px}.pill{float:right;background:#17251f;color:#55dfa0;padding:3px 7px;border-radius:20px;font-size:10px}.log{height:180px;overflow:auto;background:#07090d;border-radius:10px;padding:10px;color:#aeb7c6;font:11px ui-monospace,monospace}.hint{font-size:12px;color:#8e98a9;line-height:1.5}.wide{grid-column:1/-1}.bar{height:8px;background:#202531;border-radius:20px;overflow:hidden;margin:6px 0 14px}.bar span{display:block;height:100%;background:#7657ff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hidden{display:none}.notice{padding:12px;border:1px solid #2a3342;background:#0a0d14;border-radius:10px;color:#b8c1d0;font-size:12px;line-height:1.5}.queueEmpty{color:#778193;font-size:13px;padding:15px;text-align:center;border:1px dashed #29303d;border-radius:10px}
-@media(max-width:800px){.side{display:none}.main{padding:16px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.top h1{font-size:24px}.row{grid-template-columns:1fr}}
+:root{
+  --bg:#07080d;
+  --panel:#10121a;
+  --panel2:#151824;
+  --text:#f5f7ff;
+  --muted:#9298aa;
+  --line:#252a3a;
+  --purple:#8b5cf6;
+  --pink:#ec4899;
+  --green:#22c55e;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 75% 0%,#351761 0,#07080d 38%),
+    #07080d;
+  color:var(--text);
+  font-family:Inter,Arial,sans-serif;
+}
+
+button,input,textarea,select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:245px;
+  background:#0b0d13ee;
+  border-right:1px solid var(--line);
+  padding:22px 16px;
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  z-index:10;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  font-size:20px;
+  font-weight:800;
+  margin:4px 8px 30px;
+}
+
+.logo{
+  width:36px;
+  height:36px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  box-shadow:0 8px 25px #8b5cf655;
+}
+
+.nav{
+  display:grid;
+  gap:7px;
+}
+
+.nav button{
+  border:1px solid transparent;
+  background:transparent;
+  color:#aeb3c2;
+  text-align:left;
+  padding:12px;
+  border-radius:10px;
+}
+
+.nav button:hover,
+.nav button.active{
+  background:#171a25;
+  color:white;
+  border-color:#292e40;
+}
+
+.main{
+  margin-left:245px;
+  width:calc(100% - 245px);
+  padding:28px;
+  max-width:1500px;
+}
+
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:25px;
+}
+
+.top h1{
+  margin:0;
+  font-size:28px;
+}
+
+.status{
+  padding:8px 12px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  color:#bfc4d2;
+  background:#0d1018;
+}
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+.hero{
+  padding:35px;
+  border:1px solid #2a2e40;
+  border-radius:22px;
+  background:linear-gradient(135deg,#151526dd,#10121add);
+  box-shadow:0 20px 60px #0008;
+  margin-bottom:20px;
+}
+
+.hero h2{
+  font-size:42px;
+  line-height:1.05;
+  margin:0 0 12px;
+}
+
+.gradient{
+  background:linear-gradient(90deg,#a78bfa,#f472b6);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.hero p{
+  color:var(--muted);
+  max-width:720px;
+  line-height:1.6;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:16px;
+}
+
+.card{
+  grid-column:span 4;
+  background:linear-gradient(180deg,#12151f,#0e1017);
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:20px;
+}
+
+.card.big{
+  grid-column:span 8;
+}
+
+.card.full{
+  grid-column:1/-1;
+}
+
+.card h3{
+  margin:0 0 7px;
+}
+
+.icon{
+  font-size:27px;
+  margin-bottom:12px;
+}
+
+.muted{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.5;
+}
+
+.form{
+  background:#0e1017;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:22px;
+}
+
+.form h2{
+  margin-top:0;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr;
+  gap:12px;
+}
+
+.field{
+  display:grid;
+  gap:7px;
+  margin-bottom:14px;
+}
+
+.field label{
+  font-size:13px;
+  color:#b8bdcb;
+}
+
+.field input,
+.field textarea,
+.field select{
+  width:100%;
+  border:1px solid #2a2e3e;
+  background:#090b11;
+  color:white;
+  border-radius:10px;
+  padding:12px;
+  outline:none;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus{
+  border-color:var(--purple);
+}
+
+textarea{
+  min-height:190px;
+  resize:vertical;
+}
+
+.actions{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  border:1px solid #303548;
+  background:#181b26;
+  color:white;
+  border-radius:10px;
+  padding:11px 15px;
+}
+
+.btn:hover{
+  filter:brightness(1.15);
+}
+
+.btn.primary{
+  border:0;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  font-weight:700;
+}
+
+.btn.danger{
+  border-color:#5b2229;
+  color:#ff9ca6;
+}
+
+.result{
+  margin-top:16px;
+  border:1px solid var(--line);
+  background:#090b11;
+  border-radius:15px;
+  padding:18px;
+  white-space:pre-wrap;
+  line-height:1.6;
+  min-height:90px;
+}
+
+.score{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-top:18px;
+}
+
+.scoreNum{
+  font-size:45px;
+  font-weight:800;
+  min-width:90px;
+}
+
+.bar{
+  height:10px;
+  background:#252938;
+  border-radius:99px;
+  overflow:hidden;
+  flex:1;
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,#f59e0b,#22c55e);
+  width:0;
+  transition:.5s;
+}
+
+.history{
+  display:grid;
+  gap:10px;
+}
+
+.historyItem{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  border:1px solid var(--line);
+  padding:14px;
+  border-radius:12px;
+  background:#0d1017;
+}
+
+.historyItem .txt{
+  overflow:hidden;
+}
+
+.historyItem strong{
+  display:block;
+  margin-bottom:3px;
+}
+
+.historyItem span{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.toast{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  background:#171b27;
+  border:1px solid #353b4e;
+  padding:12px 16px;
+  border-radius:12px;
+  opacity:0;
+  transform:translateY(10px);
+  transition:.2s;
+  z-index:99;
+}
+
+.toast.show{
+  opacity:1;
+  transform:none;
+}
+
+@media(max-width:900px){
+
+  .sidebar{
+    width:75px;
+    padding:15px 9px;
+  }
+
+  .brand span,
+  .nav button span{
+    display:none;
+  }
+
+  .brand{
+    justify-content:center;
+    margin-bottom:25px;
+  }
+
+  .nav button{
+    text-align:center;
+  }
+
+  .main{
+    margin-left:75px;
+    width:calc(100% - 75px);
+    padding:18px;
+  }
+
+  .card,
+  .card.big{
+    grid-column:1/-1;
+  }
+
+  .row{
+    grid-template-columns:1fr;
+  }
+
+  .hero h2{
+    font-size:32px;
+  }
+}
+
+@media(max-width:600px){
+
+  .main{
+    padding:12px;
+  }
+
+  .hero{
+    padding:22px;
+  }
+
+  .top h1{
+    font-size:22px;
+  }
+
+  .score{
+    flex-wrap:wrap;
+  }
+}
 </style>
 </head>
+
 <body>
+
 <div class="app">
-<aside class="side">
-  <div class="brand">ViralForge <i>AI Studio</i></div>
-  <div class="nav">
-    <button class="active" data-tab="center">⚡ Command Center</button>
-    <button data-tab="production">🎬 Production</button>
-    <button data-tab="analytics">📈 Analytics</button>
-    <button data-tab="ideas">🧠 Idea Lab</button>
-    <button data-tab="automation">⚙️ Automation</button>
+
+<aside class="sidebar">
+
+  <div class="brand">
+    <div class="logo">⚡</div>
+    <span>ViralForge</span>
   </div>
+
+  <nav class="nav">
+
+    <button class="active" data-page="dashboard">
+      🏠 <span>Dashboard</span>
+    </button>
+
+    <button data-page="generator">
+      ✦ <span>AI Generator</span>
+    </button>
+
+    <button data-page="hooks">
+      🪝 <span>Hook Lab</span>
+    </button>
+
+    <button data-page="captions">
+      ✍️ <span>Captions</span>
+    </button>
+
+    <button data-page="score">
+      📊 <span>Viral Score</span>
+    </button>
+
+    <button data-page="history">
+      💾 <span>History</span>
+    </button>
+
+  </nav>
+
 </aside>
 
+
 <main class="main">
-<div class="top">
-  <div><h1 id="pageTitle">Autopilot Command Center</h1><div class="status">● Local system online</div></div>
-  <button class="primary" onclick="runBatch()">RUN NOW</button>
-</div>
 
-<div id="center" class="tab">
-  <div class="grid">
-    <section class="card wide"><div class="stats">
-      <div class="stat"><b id="ideas">0</b><span>IDEAS</span></div>
-      <div class="stat"><b id="scripts">0</b><span>SCRIPTS</span></div>
-      <div class="stat"><b id="renders">0</b><span>RENDERS</span></div>
-      <div class="stat"><b id="published">0</b><span>PUBLISHED</span></div>
-      <div class="stat"><b id="runs">0</b><span>RUNS</span></div>
-    </div></section>
+<header class="top">
 
-    <section class="card">
-      <h2>Autopilot</h2>
-      <div class="toggle"><span>Repeat batches</span><input id="auto" type="checkbox"></div>
-      <div class="field"><label>Niche</label><input id="niche" value="Impossible Reality"></div>
-      <div class="row">
-        <div class="field"><label>Batch size</label><select id="size"><option>5</option><option selected>10</option><option>20</option></select></div>
-        <div class="field"><label>Schedule</label><select id="schedule"><option>Every 30 seconds (test)</option><option>Every hour</option><option>Every 6 hours</option><option>Daily</option></select></div>
-      </div>
-      <div class="actions"><button class="primary" onclick="runBatch()">Generate batch</button><button class="secondary" onclick="stopAuto()">Stop</button></div>
-      <p class="hint">Test mode generates the full content pipeline locally. Nothing is uploaded without an explicit YouTube connection.</p>
-    </section>
+  <h1 id="pageTitle">
+    Dashboard
+  </h1>
 
-    <section class="card">
-      <h2>Pipeline</h2>
-      <div class="small">Idea selection</div><div class="bar"><span id="p1" style="width:100%"></span></div>
-      <div class="small">Script + hook</div><div class="bar"><span id="p2" style="width:100%"></span></div>
-      <div class="small">Video render</div><div class="bar"><span id="p3" style="width:0%"></span></div>
-      <div class="small">Quality check</div><div class="bar"><span id="p4" style="width:0%"></span></div>
-      <div class="small">Publish</div><div class="bar"><span id="p5" style="width:0%"></span></div>
-    </section>
-
-    <section class="card">
-      <h2>Activity</h2><div class="log" id="log">ViralForge initialized. Test pipeline ready.</div>
-    </section>
-
-    <section class="card wide">
-      <h2>Production Queue</h2><div class="queue" id="queue"><div class="queueEmpty">Nothing queued yet. Press RUN NOW.</div></div>
-    </section>
+  <div class="status">
+    ● Ready
   </div>
-</div>
 
-<div id="production" class="tab hidden">
-  <div class="grid">
-    <section class="card wide"><h2>Content Builder</h2>
-      <div class="field"><label>Topic</label><input id="topic" placeholder="Example: What if Earth had rings?"></div>
-      <div class="field"><label>Extra instructions</label><textarea id="instructions" placeholder="Fast hook, simple language, 30–45 seconds..."></textarea></div>
-      <div class="actions"><button class="primary" onclick="createOne()">Create video package</button><button class="secondary" onclick="downloadQueue()">Export queue</button></div>
-    </section>
-  </div>
-</div>
+</header>
 
-<div id="analytics" class="tab hidden">
-  <div class="grid"><section class="card wide"><h2>Analytics</h2>
-    <div class="stats">
-      <div class="stat"><b id="aQueue">0</b><span>QUEUE ITEMS</span></div>
-      <div class="stat"><b id="aDone">0</b><span>COMPLETED</span></div>
-      <div class="stat"><b id="aRate">0%</b><span>TEST SUCCESS</span></div>
-      <div class="stat"><b id="aRuns">0</b><span>BATCHES</span></div>
-      <div class="stat"><b id="aPublished">0</b><span>PUBLISHED</span></div>
+
+<!-- DASHBOARD -->
+
+<section id="dashboard" class="page active">
+
+  <div class="hero">
+
+    <h2>
+      Turn ideas into
+      <span class="gradient">
+        content that hits.
+      </span>
+    </h2>
+
+    <p>
+      ViralForge is your all-in-one short-form content studio.
+      Generate hooks, scripts, captions and content scores in seconds.
+    </p>
+
+    <div class="actions">
+
+      <button class="btn primary"
+        onclick="showPage('generator')">
+        Create Content →
+      </button>
+
+      <button class="btn"
+        onclick="showPage('hooks')">
+        Open Hook Lab
+      </button>
+
     </div>
-  </section></div>
-</div>
 
-<div id="ideas" class="tab hidden">
-  <div class="grid"><section class="card wide"><h2>Idea Lab</h2>
-    <div class="field"><label>Niche</label><input id="ideaNiche" value="Impossible Reality"></div>
-    <button class="primary" onclick="makeIdeas()">Generate 10 ideas</button>
-    <div class="queue" id="ideaList" style="margin-top:12px"></div>
-  </section></div>
-</div>
-
-<div id="automation" class="tab hidden">
-  <div class="grid">
-    <section class="card"><h2>Automation Settings</h2>
-      <div class="notice">The browser can safely run the local test pipeline. Real YouTube publishing requires OAuth/API credentials and should be connected through a secure backend rather than putting secrets in this HTML file.</div>
-      <div class="field"><label>Channel name</label><input id="channel" placeholder="Your channel"></div>
-      <div class="field"><label>Default visibility</label><select id="visibility"><option>Private</option><option>Unlisted</option><option>Public</option></select></div>
-      <button class="secondary" onclick="saveSettings()">Save settings</button>
-    </section>
-    <section class="card"><h2>YouTube Connection</h2>
-      <div class="notice">Connection status: <b id="ytStatus">Not connected</b><br><br>This demo intentionally does not fake a successful upload. When a secure YouTube OAuth backend is added, this button can be wired to it.</div>
-      <div class="actions"><button class="primary" onclick="alert('YouTube OAuth needs a backend/client configuration before it can connect safely.')">Connect YouTube</button><button class="danger" onclick="clearData()">Reset local data</button></div>
-    </section>
   </div>
+
+
+  <div class="grid">
+
+    <div class="card">
+
+      <div class="icon">🎬</div>
+
+      <h3>
+        Script Generator
+      </h3>
+
+      <p class="muted">
+        Turn any idea into a structured short-form video script.
+      </p>
+
+      <button class="btn"
+        onclick="showPage('generator')">
+        Start →
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="icon">🪝</div>
+
+      <h3>
+        Hook Lab
+      </h3>
+
+      <p class="muted">
+        Generate multiple scroll-stopping opening lines.
+      </p>
+
+      <button class="btn"
+        onclick="showPage('hooks')">
+        Create Hooks →
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="icon">✍️</div>
+
+      <h3>
+        Caption Maker
+      </h3>
+
+      <p class="muted">
+        Create captions, CTAs and hashtags.
+      </p>
+
+      <button class="btn"
+        onclick="showPage('captions')">
+        Make Caption →
+      </button>
+
+    </div>
+
+
+    <div class="card full">
+
+      <h3>
+        ⚡ Quick Start
+      </h3>
+
+      <p class="muted">
+        Pick a topic, choose your platform, generate your content,
+        then copy or save the result.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- GENERATOR -->
+
+<section id="generator" class="page">
+
+  <div class="form">
+
+    <h2>
+      AI Content Generator
+    </h2>
+
+    <p class="muted">
+      Create a complete short-form content package.
+    </p>
+
+
+    <div class="row">
+
+      <div class="field">
+
+        <label>
+          Topic / Idea
+        </label>
+
+        <input
+          id="topic"
+          placeholder="Example: 5 ways to get better at basketball"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Platform
+        </label>
+
+        <select id="platform">
+
+          <option>TikTok</option>
+
+          <option>
+            YouTube Shorts
+          </option>
+
+          <option>
+            Instagram Reels
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Style
+        </label>
+
+        <select id="style">
+
+          <option>
+            High Energy
+          </option>
+
+          <option>
+            Storytelling
+          </option>
+
+          <option>
+            Educational
+          </option>
+
+          <option>
+            Funny
+          </option>
+
+          <option>
+            Calm
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <div class="actions">
+
+      <button
+        class="btn primary"
+        onclick="generateScript()">
+
+        Generate Script ✦
+
+      </button>
+
+
+      <button
+        class="btn"
+        onclick="randomTopic()">
+
+        Random Idea 🎲
+
+      </button>
+
+    </div>
+
+
+    <div
+      id="scriptResult"
+      class="result">
+
+      Your generated script will appear here.
+
+    </div>
+
+
+    <div class="actions"
+      style="margin-top:10px">
+
+      <button
+        class="btn"
+        onclick="copyText('scriptResult')">
+
+        📋 Copy
+
+      </button>
+
+
+      <button
+        class="btn"
+        onclick="saveResult('Script',getText('scriptResult'))">
+
+        💾 Save
+
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- HOOK LAB -->
+
+<section id="hooks" class="page">
+
+  <div class="form">
+
+    <h2>
+      🪝 Hook Lab
+    </h2>
+
+    <p class="muted">
+      Generate 8 different opening angles for your idea.
+    </p>
+
+
+    <div class="field">
+
+      <label>
+        Topic
+      </label>
+
+      <input
+        id="hookTopic"
+        placeholder="Example: how I learned to edit videos">
+
+    </div>
+
+
+    <div class="actions">
+
+      <button
+        class="btn primary"
+        onclick="generateHooks()">
+
+        Generate 8 Hooks 🪝
+
+      </button>
+
+    </div>
+
+
+    <div
+      id="hookResult"
+      class="result">
+
+      Hooks will appear here.
+
+    </div>
+
+
+    <div class="actions"
+      style="margin-top:10px">
+
+      <button
+        class="btn"
+        onclick="copyText('hookResult')">
+
+        📋 Copy
+
+      </button>
+
+
+      <button
+        class="btn"
+        onclick="saveResult('Hooks',getText('hookResult'))">
+
+        💾 Save
+
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- CAPTIONS -->
+
+<section id="captions" class="page">
+
+  <div class="form">
+
+    <h2>
+      ✍️ Caption Maker
+    </h2>
+
+    <p class="muted">
+      Create a caption, CTA and hashtag set.
+    </p>
+
+
+    <div class="field">
+
+      <label>
+        Topic
+      </label>
+
+      <input
+        id="captionTopic"
+        placeholder="Example: my first viral video">
+
+    </div>
+
+
+    <div class="row">
+
+      <div class="field">
+
+        <label>
+          Tone
+        </label>
+
+        <select id="captionTone">
+
+          <option>Confident</option>
+
+          <option>Funny</option>
+
+          <option>Curious</option>
+
+          <option>Motivational</option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Platform
+        </label>
+
+        <select id="captionPlatform">
+
+          <option>TikTok</option>
+
+          <option>Instagram</option>
+
+          <option>YouTube</option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Length
+        </label>
+
+        <select id="captionLength">
+
+          <option>Short</option>
+
+          <option>Medium</option>
+
+          <option>Long</option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <button
+      class="btn primary"
+      onclick="generateCaption()">
+
+      Generate Caption ✦
+
+    </button>
+
+
+    <div
+      id="captionResult"
+      class="result">
+
+      Caption will appear here.
+
+    </div>
+
+
+    <div class="actions"
+      style="margin-top:10px">
+
+      <button
+        class="btn"
+        onclick="copyText('captionResult')">
+
+        📋 Copy
+
+      </button>
+
+
+      <button
+        class="btn"
+        onclick="saveResult('Caption',getText('captionResult'))">
+
+        💾 Save
+
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- SCORE -->
+
+<section id="score" class="page">
+
+  <div class="form">
+
+    <h2>
+      📊 Viral Score
+    </h2>
+
+    <p class="muted">
+      Analyze your writing for curiosity, specificity,
+      viewer focus and calls-to-action.
+    </p>
+
+
+    <div class="field">
+
+      <label>
+        Paste your script or idea
+      </label>
+
+      <textarea
+        id="scoreText"
+        placeholder="Paste your content here..."></textarea>
+
+    </div>
+
+
+    <button
+      class="btn primary"
+      onclick="scoreContent()">
+
+      Analyze Score ◉
+
+    </button>
+
+
+    <div
+      id="scoreResult"
+      class="result">
+
+      Your score will appear here.
+
+    </div>
+
+
+    <div class="score">
+
+      <div
+        id="scoreNum"
+        class="scoreNum">
+
+        --
+
+      </div>
+
+      <div class="bar">
+
+        <i id="scoreBar"></i>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- HISTORY -->
+
+<section id="history" class="page">
+
+  <div class="form">
+
+    <div
+      style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+
+      <div>
+
+        <h2>
+          💾 Saved History
+        </h2>
+
+        <p class="muted">
+          Your saved results are stored in this browser.
+        </p>
+
+      </div>
+
+
+      <button
+        class="btn danger"
+        onclick="clearHistory()">
+
+        Clear
+
+      </button>
+
+    </div>
+
+
+    <div
+      id="historyList"
+      class="history"
+      style="margin-top:15px">
+
+    </div>
+
+  </div>
+
+</section>
+
+
+</main>
+
 </div>
-</main></div>
+
+
+<div
+  id="toast"
+  class="toast">
+
+</div>
+
+
 
 <script>
-const ideas=[
-"What if Earth had two moons?","POV: you wake up 500 years in the future.","What would a school on Mars look like?",
-"What if gravity disappeared for 10 seconds?","A city built inside a volcano.","What if humans could see time?",
-"The last city on Earth.","A hotel inside Jupiter.","What if the ocean vanished overnight?","A civilization underneath Antarctica."
-];
-const state=JSON.parse(localStorage.getItem("vf_state")||'{"ideas":0,"scripts":0,"renders":0,"published":0,"runs":0,"done":0,"queue":[]}');
-let timer=null;
 
-function save(){localStorage.setItem("vf_state",JSON.stringify(state));renderStats();renderQueue();}
-function renderStats(){
- ["ideas","scripts","renders","published","runs"].forEach(k=>document.getElementById(k).textContent=state[k]);
- document.getElementById("aQueue").textContent=state.queue.length;
- document.getElementById("aDone").textContent=state.done;
- document.getElementById("aRuns").textContent=state.runs;
- document.getElementById("aPublished").textContent=state.published;
- document.getElementById("aRate").textContent=state.runs?Math.round((state.done/Math.max(1,state.runs*10))*100)+"%":"0%";
-}
-function log(t){const x=document.getElementById("log");x.innerHTML+="<br>"+new Date().toLocaleTimeString()+" — "+t;x.scrollTop=x.scrollHeight;}
-function setProgress(a,b,c,d,e){["p1","p2","p3","p4","p5"].forEach((id,i)=>document.getElementById(id).style.width=[a,b,c,d,e][i]+"%");}
-function makePackage(title,niche){
- const hook="You won't believe what happens when "+title.toLowerCase()+".";
- const script=hook+" Here is the quick explanation: "+title+". Follow for more fast facts and strange ideas.";
- return {id:crypto.randomUUID(),title,niche,hook,script,status:"READY",created:new Date().toISOString()};
-}
-function runBatch(){
- const n=Number(document.getElementById("size").value), niche=document.getElementById("niche").value.trim()||"General";
- state.runs++; state.ideas+=n; state.scripts+=n; state.renders+=n;
- setProgress(100,75,40,10,0); log("Starting batch #"+state.runs+" for "+niche+"...");
- for(let i=0;i<n;i++){
-   const title=ideas[(state.ideas-n+i)%ideas.length];
-   state.queue.unshift(makePackage(title,niche));
- }
- save(); log(n+" video packages created. Render simulation complete.");
- setProgress(100,100,100,100,0);
- if(document.getElementById("auto").checked) armAuto();
-}
-function createOne(){
- const title=document.getElementById("topic").value.trim()||ideas[Math.floor(Math.random()*ideas.length)];
- const niche=document.getElementById("niche").value.trim()||"General";
- state.ideas++;state.scripts++;state.renders++;state.queue.unshift(makePackage(title,niche));
- save();log("Created one package: "+title);alert("Video package created and added to the queue.");
-}
-function renderQueue(){
- const q=document.getElementById("queue");
- if(!state.queue.length){q.innerHTML='<div class="queueEmpty">Nothing queued yet. Press RUN NOW.</div>';return;}
- q.innerHTML=state.queue.map(v=>`<div class="video"><b>${esc(v.title)}</b><span class="pill">${v.status}</span><div class="meta">Hook: ${esc(v.hook)}</div><div class="meta">Script: ${esc(v.script)}</div><div class="actions"><button class="secondary" onclick="downloadOne('${v.id}')">Export</button><button class="primary" onclick="complete('${v.id}')">Mark complete</button></div></div>`).join("");
-}
-function complete(id){const v=state.queue.find(x=>x.id===id);if(!v)return;v.status="COMPLETE";state.done++;save();log("Completed: "+v.title);}
-function downloadOne(id){const v=state.queue.find(x=>x.id===id);if(v)download("viralforge-video-package.json",JSON.stringify(v,null,2),"application/json");}
-function downloadQueue(){download("viralforge-queue.json",JSON.stringify(state.queue,null,2),"application/json");}
-function download(name,data,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href);}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
-function armAuto(){
- stopAuto(false);
- const v=document.getElementById("schedule").value;
- const ms=v.startsWith("Every 30")?30000:v==="Daily"?86400000:v==="Every 6 hours"?21600000:3600000;
- timer=setInterval(runBatch,ms);log("Autopilot armed: "+v);
-}
-function stopAuto(message=true){if(timer){clearInterval(timer);timer=null}if(message)log("Autopilot stopped");}
-document.getElementById("auto").addEventListener("change",e=>e.target.checked?armAuto():stopAuto());
+const $ = id => document.getElementById(id);
 
-function makeIdeas(){
- const niche=document.getElementById("ideaNiche").value||"General";
- const list=document.getElementById("ideaList");list.innerHTML="";
- for(let i=0;i<10;i++){const title=ideas[(i+state.ideas)%ideas.length]+" — "+niche;const d=document.createElement("div");d.className="video";d.innerHTML="<b>"+esc(title)+"</b>";list.appendChild(d);}
- log("Generated 10 idea suggestions for "+niche);
+function getText(id){
+
+  return $(id)?.innerText || "";
+
 }
-function saveSettings(){localStorage.setItem("vf_channel",document.getElementById("channel").value);localStorage.setItem("vf_visibility",document.getElementById("visibility").value);log("Automation settings saved.");}
-function clearData(){if(confirm("Reset all local ViralForge data?")){localStorage.removeItem("vf_state");location.reload();}}
-document.querySelectorAll(".nav button").forEach(btn=>btn.addEventListener("click",()=>{
- document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");
- document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));document.getElementById(btn.dataset.tab).classList.remove("hidden");
- document.getElementById("pageTitle").textContent=btn.textContent.replace(/^\\S+\\s/,"");
-}));
-renderStats();renderQueue();
+
+
+
+/* NAVIGATION */
+
+const pages = {
+
+  dashboard:"Dashboard",
+
+  generator:"AI Generator",
+
+  hooks:"Hook Lab",
+
+  captions:"Captions",
+
+  score:"Viral Score",
+
+  history:"History"
+
+};
+
+
+document
+.querySelectorAll(".nav button")
+.forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    showPage(button.dataset.page);
+
+  });
+
+});
+
+
+function showPage(name){
+
+  document
+  .querySelectorAll(".page")
+  .forEach(page => {
+
+    page.classList.remove("active");
+
+  });
+
+
+  $(name).classList.add("active");
+
+
+  document
+  .querySelectorAll(".nav button")
+  .forEach(button => {
+
+    button.classList.toggle(
+      "active",
+      button.dataset.page === name
+    );
+
+  });
+
+
+  $("pageTitle").textContent =
+    pages[name];
+
+
+  if(name === "history"){
+
+    renderHistory();
+
+  }
+
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+
+/* TOAST */
+
+function toast(message){
+
+  const box = $("toast");
+
+  box.textContent = message;
+
+  box.classList.add("show");
+
+  setTimeout(() => {
+
+    box.classList.remove("show");
+
+  },1800);
+
+}
+
+
+
+/* COPY */
+
+function copyText(id){
+
+  const text = getText(id);
+
+  if(
+    !text ||
+    text.includes("will appear here")
+  ){
+
+    toast("Nothing to copy yet.");
+
+    return;
+
+  }
+
+
+  navigator.clipboard
+  .writeText(text)
+  .then(() => {
+
+    toast("Copied!");
+
+  })
+  .catch(() => {
+
+    toast("Copy unavailable.");
+
+  });
+
+}
+
+
+
+/* RANDOM TOPIC */
+
+function randomTopic(){
+
+  const topics = [
+
+    "3 editing mistakes beginners make",
+
+    "how to become more confident on camera",
+
+    "a simple study trick that saves time",
+
+    "5 things I wish I knew earlier",
+
+    "how to make better videos with a phone",
+
+    "the biggest mistake new creators make",
+
+    "how to grow a new YouTube channel",
+
+    "3 ways to improve your videos"
+
+  ];
+
+
+  $("topic").value =
+    topics[
+      Math.floor(
+        Math.random()*topics.length
+      )
+    ];
+
+}
+
+
+
+/* SCRIPT GENERATOR */
+
+function generateScript(){
+
+  const topic =
+    $("topic").value.trim()
+    || "your topic";
+
+  const platform =
+    $("platform").value;
+
+  const style =
+    $("style").value;
+
+
+  const hook =
+    createHook(topic);
+
+
+  const script =
+
+`HOOK
+
+"${hook}"
+
+
+SETUP
+
+If you're interested in ${topic}, this is the part most people overlook.
+
+In the next few seconds, I'll break it down into simple steps.
+
+
+VALUE
+
+1. Start with one clear goal instead of trying to do everything at once.
+
+2. Make the first few seconds immediately useful or interesting.
+
+3. Keep each point specific so viewers can easily understand it.
+
+4. Give a real example so people can picture what you're talking about.
+
+
+PAYOFF
+
+The main idea is simple:
+
+${topic} becomes much easier when you focus on one strong improvement at a time.
+
+
+CALL TO ACTION
+
+"If this helped, save this video and follow for more."
+
+
+VIDEO FORMAT
+
+Platform: ${platform}
+
+Style: ${style}`;
+
+
+  $("scriptResult").innerText =
+    script;
+
+
+  toast("Script generated!");
+
+}
+
+
+
+/* HOOK GENERATOR */
+
+function createHook(topic){
+
+  return `Stop scrolling if you want to learn ${topic} without wasting time.`;
+
+}
+
+
+function generateHooks(){
+
+  const topic =
+    $("hookTopic").value.trim()
+    || "this topic";
+
+
+  const hooks = [
+
+    `Stop scrolling if you want to understand ${topic}.`,
+
+    `I wish someone told me this before I started ${topic}.`,
+
+    `Most people get ${topic} completely wrong.`,
+
+    `Here is one of the fastest ways to improve at ${topic}.`,
+
+    `Nobody talks about this part of ${topic}.`,
+
+    `I tested this so you don't have to.`,
+
+    `Before you try ${topic}, watch this.`,
+
+    `The biggest mistake with ${topic} is surprisingly simple.`
+
+  ];
+
+
+  $("hookResult").innerText =
+
+    hooks
+    .map(
+      (hook,index) =>
+        `${index+1}. ${hook}`
+    )
+    .join("\n\n");
+
+
+  toast("8 hooks generated!");
+
+}
+
+
+
+/* CAPTION GENERATOR */
+
+function generateCaption(){
+
+  const topic =
+    $("captionTopic").value.trim()
+    || "this idea";
+
+  const tone =
+    $("captionTone").value;
+
+  const platform =
+    $("captionPlatform").value;
+
+  const length =
+    $("captionLength").value;
+
+
+  let extra = "";
+
+
+  if(length === "Long"){
+
+    extra =
+      "\n\nThe interesting part is that small changes can create a completely different result. Try it yourself and see what happens.";
+
+  }
+
+
+  const caption =
+
+`${topic} — ${tone.toLowerCase()} take.
+
+The part that surprised me most?
+
+Small changes can make a huge difference.${extra}
+
+What do you think? 👇
+
+Save this if you want to come back to it.
+
+#contentcreator #creator #tips #learn #fyp
+
+Platform: ${platform}`;
+
+
+  $("captionResult").innerText =
+    caption;
+
+
+  toast("Caption generated!");
+
+}
+
+
+
+/* VIRAL SCORE */
+
+function scoreContent(){
+
+  const text =
+    $("scoreText").value.trim();
+
+
+  if(!text){
+
+    toast("Paste some content first.");
+
+    return;
+
+  }
+
+
+  let score = 40;
+
+  const reasons = [];
+
+
+  if(text.length > 80){
+
+    score += 10;
+
+    reasons.push(
+      "Good amount of detail."
+    );
+
+  }else{
+
+    reasons.push(
+      "Add more specific detail."
+    );
+
+  }
+
+
+  if(/\?/.test(text)){
+
+    score += 10;
+
+    reasons.push(
+      "Uses a curiosity/question angle."
+    );
+
+  }else{
+
+    reasons.push(
+      "Try adding a question or curiosity gap."
+    );
+
+  }
+
+
+  if(
+    /\b(you|your)\b/i.test(text)
+  ){
+
+    score += 10;
+
+    reasons.push(
+      "Speaks directly to the viewer."
+    );
+
+  }
+
+
+  if(
+    /\b(3|5|7|10|steps|ways|mistake|secret|before|after)\b/i
+    .test(text)
+  ){
+
+    score += 10;
+
+    reasons.push(
+      "Uses a concrete or curiosity-based angle."
+    );
+
+  }
+
+
+  if(
+    /\b(follow|comment|save|share|subscribe)\b/i
+    .test(text)
+  ){
+
+    score += 10;
+
+    reasons.push(
+      "Includes a call to action."
+    );
+
+  }else{
+
+    reasons.push(
+      "Add a simple call to action."
+    );
+
+  }
+
+
+  score =
+    Math.min(
+      100,
+      score
+    );
+
+
+  $("scoreNum").textContent =
+    score;
+
+
+  $("scoreBar").style.width =
+    score+"%";
+
+
+  $("scoreResult").innerText =
+
+`VIRAL SCORE: ${score}/100
+
+${reasons
+.map(reason => "• "+reason)
+.join("\n")}
+
+This is a writing heuristic, not a guarantee of views.`;
+
+
+  toast("Content analyzed!");
+
+}
+
+
+
+/* SAVE */
+
+function saveResult(type,text){
+
+  if(
+    !text ||
+    text.includes("will appear here")
+  ){
+
+    toast("Generate something first.");
+
+    return;
+
+  }
+
+
+  let history =
+    JSON.parse(
+      localStorage.getItem("vfHistory")
+      || "[]"
+    );
+
+
+  history.unshift({
+
+    type:type,
+
+    text:text,
+
+    date:new Date()
+      .toLocaleString()
+
+  });
+
+
+  history =
+    history.slice(0,30);
+
+
+  localStorage.setItem(
+    "vfHistory",
+    JSON.stringify(history)
+  );
+
+
+  toast("Saved!");
+
+}
+
+
+
+/* HISTORY */
+
+function renderHistory(){
+
+  const history =
+    JSON.parse(
+      localStorage.getItem("vfHistory")
+      || "[]"
+    );
+
+
+  const box =
+    $("historyList");
+
+
+  if(!history.length){
+
+    box.innerHTML =
+
+      `<div class="result">
+        Nothing saved yet.
+      </div>`;
+
+    return;
+
+  }
+
+
+  box.innerHTML =
+
+    history
+    .map((item,index) => `
+
+      <div class="historyItem">
+
+        <div class="txt">
+
+          <strong>
+            ${escapeHTML(item.type)}
+          </strong>
+
+          <span>
+            ${escapeHTML(item.date)}
+          </span>
+
+          <div class="muted">
+
+            ${escapeHTML(
+              item.text.slice(0,150)
+            )}
+
+            ${item.text.length > 150
+              ? "..."
+              : ""}
+
+          </div>
+
+        </div>
+
+
+        <button
+          class="btn"
+          onclick="copyHistory(${index})">
+
+          Copy
+
+        </button>
+
+      </div>
+
+    `)
+    .join("");
+
+}
+
+
+
+/* COPY HISTORY */
+
+function copyHistory(index){
+
+  const history =
+    JSON.parse(
+      localStorage.getItem("vfHistory")
+      || "[]"
+    );
+
+
+  navigator.clipboard
+  ?.writeText(
+    history[index].text
+  );
+
+
+  toast("Copied!");
+
+}
+
+
+
+/* CLEAR HISTORY */
+
+function clearHistory(){
+
+  localStorage.removeItem(
+    "vfHistory"
+  );
+
+
+  renderHistory();
+
+  toast("History cleared.");
+
+}
+
+
+
+/* SECURITY */
+
+function escapeHTML(text){
+
+  return String(text)
+    .replace(
+      /[&<>"']/g,
+      character => ({
+
+        "&":"&amp;",
+
+        "<":"&lt;",
+
+        ">":"&gt;",
+
+        '"':"&quot;",
+
+        "'":"&#039;"
+
+      }[character])
+
+    );
+
+}
+
 </script>
-</body></html>
+
+</body>
+</html>
