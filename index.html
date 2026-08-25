@@ -1,1672 +1,423 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ViralForge AI Studio</title>
+import express from "express";
+import cors from "cors";
+import OpenAI from "openai";
 
-<style>
-:root{
-  --bg:#07080d;
-  --panel:#10131d;
-  --panel2:#151a27;
-  --line:#2a3040;
-  --text:#f7f8ff;
-  --muted:#98a0b5;
-  --purple:#8b5cf6;
-  --pink:#ec4899;
-  --green:#22c55e;
-  --red:#ef4444;
-}
+const app = express();
 
-*{box-sizing:border-box}
+const PORT = process.env.PORT || 10000;
+const MODEL = process.env.OPENAI_MODEL || "gpt-5.6-luna";
 
-body{
-  margin:0;
-  background:radial-gradient(circle at 70% -10%,#4c2478 0,#07080d 35%);
-  color:var(--text);
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
 
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
+// --------------------------------------------------
+// OPENAI
+// --------------------------------------------------
 
-.app{min-height:100vh;display:flex}
+const apiKey = process.env.OPENAI_API_KEY;
 
-.sidebar{
-  position:fixed;
-  left:0;
-  top:0;
-  bottom:0;
-  width:245px;
-  padding:18px 14px;
-  background:#090b11ee;
-  border-right:1px solid var(--line);
-  z-index:10;
-}
+const openai = apiKey
+  ? new OpenAI({ apiKey })
+  : null;
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-size:20px;
-  font-weight:900;
-  margin:6px 8px 25px;
-}
+// --------------------------------------------------
+// HEALTH CHECK
+// --------------------------------------------------
 
-.logo{
-  width:40px;
-  height:40px;
-  border-radius:12px;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(135deg,var(--purple),var(--pink));
-  box-shadow:0 10px 35px #8b5cf655;
-}
+app.get("/", (req, res) => {
+  res.json({
+    ok: true,
+    name: "ViralForge AI Studio Backend",
+    status: openai ? "AI connected" : "AI key missing",
+    model: MODEL
+  });
+});
 
-.nav{display:grid;gap:6px}
+app.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    openaiConfigured: Boolean(apiKey),
+    model: MODEL
+  });
+});
 
-.nav button{
-  width:100%;
-  border:1px solid transparent;
-  background:transparent;
-  color:#aeb5c7;
-  padding:12px;
-  border-radius:11px;
-  text-align:left;
-}
+// --------------------------------------------------
+// HELPER
+// --------------------------------------------------
 
-.nav button:hover,
-.nav button.active{
-  background:#171b27;
-  color:#fff;
-  border-color:#303649;
-}
-
-.main{
-  margin-left:245px;
-  width:calc(100% - 245px);
-  padding:25px;
-  max-width:1600px;
-}
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:18px;
-}
-
-.topbar h1{margin:0;font-size:28px}
-
-.status{
-  padding:7px 12px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  background:#0d1018;
-  color:#bfc6d8;
-}
-
-.page{display:none}
-.page.active{display:block}
-
-.hero,.panel{
-  border:1px solid var(--line);
-  border-radius:20px;
-  background:linear-gradient(180deg,#131722,#0d1017);
-  padding:24px;
-  box-shadow:0 18px 55px #0006;
-}
-
-.hero{margin-bottom:15px}
-
-.hero h2{
-  font-size:44px;
-  line-height:1.05;
-  margin:0 0 12px;
-}
-
-.gradient{
-  background:linear-gradient(90deg,#a78bfa,#f472b6);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-}
-
-.muted{color:var(--muted);line-height:1.55}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(12,1fr);
-  gap:14px;
-}
-
-.card{
-  grid-column:span 4;
-  padding:18px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:#0d1017;
-}
-
-.card.wide{grid-column:span 8}
-.card.full{grid-column:1/-1}
-.card h3{margin-top:0}
-
-.form-grid{
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr;
-  gap:12px;
-}
-
-.field{
-  display:grid;
-  gap:6px;
-  margin-bottom:12px;
-}
-
-.field label{
-  color:#bdc4d5;
-  font-size:12px;
-  font-weight:700;
-}
-
-.field input,
-.field select,
-.field textarea{
-  width:100%;
-  background:#090b11;
-  color:white;
-  border:1px solid #2c3243;
-  border-radius:10px;
-  padding:11px;
-  outline:none;
-}
-
-.field textarea{
-  min-height:180px;
-  resize:vertical;
-}
-
-.field input:focus,
-.field select:focus,
-.field textarea:focus{
-  border-color:var(--purple);
-}
-
-.actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  padding:10px 14px;
-  border-radius:10px;
-  border:1px solid #353b4d;
-  background:#171b26;
-  color:white;
-}
-
-.btn:hover{
-  filter:brightness(1.12);
-  transform:translateY(-1px);
-}
-
-.primary{
-  border:0;
-  background:linear-gradient(135deg,var(--purple),var(--pink));
-  font-weight:800;
-}
-
-.good{
-  border-color:#23623c;
-  color:#b9f6c9;
-}
-
-.danger{
-  border-color:#672b32;
-  color:#ffb2ba;
-}
-
-.result{
-  white-space:pre-wrap;
-  line-height:1.65;
-  background:#080a10;
-  border:1px solid var(--line);
-  border-radius:13px;
-  padding:16px;
-  margin-top:13px;
-}
-
-.variation{
-  margin-top:12px;
-  border:1px solid var(--line);
-  background:#0b0e14;
-  border-radius:14px;
-  padding:15px;
-}
-
-.variation-head{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  align-items:center;
-}
-
-.badge{
-  font-size:11px;
-  border:1px solid #343a4c;
-  border-radius:99px;
-  padding:4px 8px;
-  color:#bdc4d5;
-}
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:9px;
-  margin-top:13px;
-}
-
-.stat{
-  padding:13px;
-  border:1px solid var(--line);
-  background:#0a0d13;
-  border-radius:11px;
-}
-
-.stat b{
-  font-size:21px;
-  display:block;
-}
-
-.stat span{
-  font-size:11px;
-  color:var(--muted);
-}
-
-.history{
-  display:grid;
-  gap:9px;
-}
-
-.history-item{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  align-items:center;
-  border:1px solid var(--line);
-  background:#0b0e14;
-  border-radius:12px;
-  padding:13px;
-}
-
-.idea{
-  border:1px solid var(--line);
-  background:#0b0e14;
-  border-radius:12px;
-  padding:14px;
-}
-
-.idea b{
-  display:block;
-  margin-bottom:5px;
-}
-
-.score-number{
-  font-size:50px;
-  font-weight:900;
-}
-
-.bar{
-  height:10px;
-  border-radius:999px;
-  background:#252a38;
-  overflow:hidden;
-  margin-top:12px;
-}
-
-.bar i{
-  display:block;
-  height:100%;
-  width:0;
-  background:linear-gradient(90deg,#f59e0b,#22c55e);
-  transition:.4s;
-}
-
-#toast{
-  position:fixed;
-  right:18px;
-  bottom:18px;
-  background:#191d29;
-  border:1px solid #3b4255;
-  border-radius:11px;
-  padding:11px 14px;
-  opacity:0;
-  transform:translateY(8px);
-  transition:.2s;
-  z-index:50;
-}
-
-#toast.show{
-  opacity:1;
-  transform:none;
-}
-
-.loading{
-  animation:pulse 1.3s infinite;
-}
-
-@keyframes pulse{
-  50%{opacity:.45}
-}
-
-@media(max-width:900px){
-  .sidebar{width:72px}
-  .brand span,.nav button span{display:none}
-  .brand{justify-content:center}
-  .nav button{text-align:center}
-  .main{
-    margin-left:72px;
-    width:calc(100% - 72px);
-    padding:15px;
+async function generateAI(prompt) {
+  if (!openai) {
+    throw new Error(
+      "OPENAI_API_KEY is not configured on the server."
+    );
   }
-  .card,.card.wide{grid-column:1/-1}
-  .form-grid{grid-template-columns:1fr 1fr}
-  .hero h2{font-size:34px}
+
+  const response = await openai.responses.create({
+    model: MODEL,
+    input: prompt
+  });
+
+  return response.output_text || "";
 }
 
-@media(max-width:600px){
-  .form-grid{grid-template-columns:1fr}
-  .stats{grid-template-columns:1fr 1fr}
-  .hero h2{font-size:29px}
-}
-</style>
-</head>
-
-<body>
-
-<div class="app">
-
-<aside class="sidebar">
-
-<div class="brand">
-<div class="logo">⚡</div>
-<span>ViralForge</span>
-</div>
-
-<div class="nav">
-
-<button class="active" data-page="home">🏠 <span>Dashboard</span></button>
-<button data-page="studio">🎬 <span>Content Studio</span></button>
-<button data-page="hooks">🪝 <span>Hook Lab</span></button>
-<button data-page="ideas">💡 <span>Idea Lab</span></button>
-<button data-page="captions">✍️ <span>Captions</span></button>
-<button data-page="score">📊 <span>Viral Score</span></button>
-<button data-page="saved">💾 <span>Saved</span></button>
-<button data-page="settings">⚙️ <span>Settings</span></button>
-
-</div>
-</aside>
-
-<main class="main">
-
-<header class="topbar">
-<h1 id="pageTitle">Dashboard</h1>
-<div class="status">● AI Connected</div>
-</header>
-
-<section id="home" class="page active">
-
-<div class="hero">
-
-<h2>
-Make content that
-<span class="gradient">earns the next second.</span>
-</h2>
-
-<p class="muted">
-ViralForge is your all-in-one short-form content studio.
-Use real AI to create scripts, hooks, ideas and captions.
-</p>
-
-<div class="actions">
-
-<button class="btn primary" onclick="openPage('studio')">
-🚀 Create Content
-</button>
-
-<button class="btn" onclick="surpriseMe()">
-🎲 Surprise Me
-</button>
-
-</div>
-</div>
-
-<div class="grid">
-
-<div class="card">
-<h3>🎬 Content Studio</h3>
-<p class="muted">Generate AI-powered short-form scripts.</p>
-<button class="btn" onclick="openPage('studio')">Open</button>
-</div>
-
-<div class="card">
-<h3>🪝 Hook Lab</h3>
-<p class="muted">Generate scroll-stopping openings.</p>
-<button class="btn" onclick="openPage('hooks')">Open</button>
-</div>
-
-<div class="card">
-<h3>💡 Idea Lab</h3>
-<p class="muted">Generate batches of content ideas.</p>
-<button class="btn" onclick="openPage('ideas')">Open</button>
-</div>
-
-<div class="card wide">
-<h3>🚀 Creator Workflow</h3>
-<p class="muted">
-Idea → Hook → Script → Caption → Score → Save → Publish
-</p>
-<p class="muted">
-AI generation is connected through your secure backend.
-</p>
-</div>
-
-<div class="card">
-<h3>🔒 Secure AI</h3>
-<p class="muted">
-Your OpenAI key stays on the backend and is never placed in this page.
-</p>
-</div>
-
-</div>
-</section>
-
-<section id="studio" class="page">
-
-<div class="panel">
-
-<h2>🎬 AI Content Studio</h2>
-
-<p class="muted">
-Tell ViralForge what you want to make and the AI will create the content.
-</p>
-
-<div class="form-grid">
-
-<div class="field">
-<label>TOPIC</label>
-<input id="topic" placeholder="Example: how to get better at basketball">
-</div>
-
-<div class="field">
-<label>NICHE</label>
-<select id="niche"></select>
-</div>
-
-<div class="field">
-<label>PLATFORM</label>
-<select id="platform">
-<option>TikTok</option>
-<option>YouTube Shorts</option>
-<option>Instagram Reels</option>
-</select>
-</div>
-
-<div class="field">
-<label>STYLE</label>
-<select id="style">
-<option>High Energy</option>
-<option>Storytelling</option>
-<option>Educational</option>
-<option>Funny</option>
-<option>Serious</option>
-<option>Bold</option>
-<option>Motivational</option>
-</select>
-</div>
-
-<div class="field">
-<label>LENGTH</label>
-<select id="length">
-<option>30 seconds</option>
-<option>45 seconds</option>
-<option>60 seconds</option>
-</select>
-</div>
-
-<div class="field">
-<label>AUDIENCE</label>
-<select id="audience">
-<option>Beginners</option>
-<option>Teens</option>
-<option>Creators</option>
-<option>Fans</option>
-<option>Everyone</option>
-</select>
-</div>
-
-</div>
-
-<div class="actions">
-
-<button class="btn primary" onclick="generateScripts()">
-🔥 Generate AI Content
-</button>
-
-<button class="btn" onclick="surpriseMe()">
-🎲 Random
-</button>
-
-</div>
-
-<div id="scripts">
-<div class="result">Your AI content will appear here.</div>
-</div>
-
-</div>
-</section>
-
-<section id="hooks" class="page">
-
-<div class="panel">
-
-<h2>🪝 Hook Lab</h2>
-
-<p class="muted">Generate 12 different hooks.</p>
-
-<div class="form-grid">
-
-<div class="field">
-<label>TOPIC</label>
-<input id="hookTopic" placeholder="Example: growing on YouTube">
-</div>
-
-<div class="field">
-<label>NICHE</label>
-<select id="hookNiche"></select>
-</div>
-
-<div class="field">
-<label>HOOK STYLE</label>
-<select id="hookStyle">
-<option>Mixed</option>
-<option>Curiosity</option>
-<option>Story</option>
-<option>Bold</option>
-<option>Educational</option>
-<option>Question</option>
-</select>
-</div>
-
-</div>
-
-<div class="actions">
-
-<button class="btn primary" onclick="generateHooks()">
-🪝 Generate 12
-</button>
-
-<button class="btn" onclick="randomHook()">
-🎲 Random Topic
-</button>
-
-</div>
-
-<div id="hookOutput" class="result">
-Your hooks will appear here.
-</div>
-
-<div class="actions">
-
-<button class="btn" onclick="copyElement('hookOutput')">📋 Copy</button>
-
-<button class="btn good" onclick="saveCurrent('Hooks','hookOutput')">
-💾 Save
-</button>
-
-</div>
-
-</div>
-</section>
-
-<section id="ideas" class="page">
-
-<div class="panel">
-
-<h2>💡 Idea Lab</h2>
-
-<p class="muted">Generate 20 different content concepts.</p>
-
-<div class="form-grid">
-
-<div class="field">
-<label>NICHE</label>
-<select id="ideaNiche"></select>
-</div>
-
-<div class="field">
-<label>PLATFORM</label>
-<select id="ideaPlatform">
-<option>TikTok</option>
-<option>YouTube Shorts</option>
-<option>Instagram Reels</option>
-</select>
-</div>
-
-<div class="field">
-<label>GOAL</label>
-<select id="ideaGoal">
-<option>Growth</option>
-<option>Education</option>
-<option>Entertainment</option>
-<option>Community</option>
-<option>Authority</option>
-</select>
-</div>
-
-</div>
-
-<button class="btn primary" onclick="generateIdeas()">
-💡 Generate 20 Ideas
-</button>
-
-<div id="ideaOutput" class="grid" style="margin-top:15px"></div>
-
-</div>
-</section>
-
-<section id="captions" class="page">
-
-<div class="panel">
-
-<h2>✍️ Caption Maker</h2>
-
-<div class="form-grid">
-
-<div class="field">
-<label>TOPIC</label>
-<input id="captionTopic" placeholder="Example: my first viral video">
-</div>
-
-<div class="field">
-<label>TONE</label>
-<select id="captionTone">
-<option>Confident</option>
-<option>Funny</option>
-<option>Curious</option>
-<option>Motivational</option>
-<option>Storytelling</option>
-</select>
-</div>
-
-<div class="field">
-<label>PLATFORM</label>
-<select id="captionPlatform">
-<option>TikTok</option>
-<option>Instagram</option>
-<option>YouTube</option>
-</select>
-</div>
-
-</div>
-
-<button class="btn primary" onclick="generateCaption()">
-✍️ Generate Caption
-</button>
-
-<div id="captionOutput" class="result">
-Your caption will appear here.
-</div>
-
-<div class="actions">
-
-<button class="btn" onclick="copyElement('captionOutput')">
-📋 Copy
-</button>
-
-<button class="btn good" onclick="saveCurrent('Caption','captionOutput')">
-💾 Save
-</button>
-
-</div>
-
-</div>
-</section>
-
-<section id="score" class="page">
-
-<div class="panel">
-
-<h2>📊 Viral Score</h2>
-
-<p class="muted">
-This is a writing heuristic. It cannot guarantee views.
-</p>
-
-<div class="field">
-
-<label>CONTENT</label>
-
-<textarea id="scoreText" placeholder="Paste your script, hook or caption here..."></textarea>
-
-</div>
-
-<button class="btn primary" onclick="analyzeScore()">
-📊 Analyze
-</button>
-
-<div style="display:flex;align-items:center;gap:20px;margin-top:18px;">
-
-<div id="scoreNumber" class="score-number">--</div>
-
-<div style="flex:1">
-<div class="bar"><i id="scoreBar"></i></div>
-</div>
-
-</div>
-
-<div id="scoreOutput" class="result">
-Your analysis will appear here.
-</div>
-
-<div id="scoreStats" class="stats"></div>
-
-</div>
-</section>
-
-<section id="saved" class="page">
-
-<div class="panel">
-
-<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-
-<div>
-<h2>💾 Saved Content</h2>
-<p class="muted">Saved locally in this browser.</p>
-</div>
-
-<button class="btn danger" onclick="clearSaved()">Clear All</button>
-
-</div>
-
-<div id="savedOutput" class="history"></div>
-
-</div>
-</section>
-
-<section id="settings" class="page">
-
-<div class="panel">
-
-<h2>⚙️ Settings</h2>
-
-<p class="muted">Customize your ViralForge experience.</p>
-
-<div class="field">
-
-<label>DEFAULT NICHE</label>
-<select id="defaultNiche"></select>
-
-</div>
-
-<div class="actions">
-
-<button class="btn primary" onclick="saveSettings()">
-Save Settings
-</button>
-
-<button class="btn danger" onclick="resetSettings()">
-Reset
-</button>
-
-</div>
-
-<div class="result">
-
-<b>AI Backend:</b>
-
-<br><br>
-
-Connected to the secure ViralForge backend.
-
-<br><br>
-
-Your API key is not stored inside this website.
-
-</div>
-
-</div>
-</section>
-
-</main>
-</div>
-
-<div id="toast"></div>
-
-<script>
-
-const API_URL =
-"https://viralforge-backend-nl1f.onrender.com";
-
-const niches=[
-"General","Gaming","Sports","Education","Fitness",
-"Storytime","Money","Tech","Entertainment","Motivation",
-"Creators","Beauty","Food","Travel","Music"
-];
-
-["niche","hookNiche","ideaNiche","defaultNiche"].forEach(id=>{
-
-const select=document.getElementById(id);
-
-niches.forEach(n=>{
-select.add(new Option(n,n));
-});
-
-});
-
-const pageNames={
-home:"Dashboard",
-studio:"Content Studio",
-hooks:"Hook Lab",
-ideas:"Idea Lab",
-captions:"Captions",
-score:"Viral Score",
-saved:"Saved Content",
-settings:"Settings"
-};
-
-function openPage(id){
-
-document.querySelectorAll(".page").forEach(page=>{
-page.classList.remove("active");
-});
-
-document.getElementById(id).classList.add("active");
-
-document.querySelectorAll(".nav button").forEach(button=>{
-button.classList.toggle("active",button.dataset.page===id);
-});
-
-document.getElementById("pageTitle").textContent=pageNames[id];
-
-if(id==="saved") renderSaved();
-
-window.scrollTo({top:0,behavior:"smooth"});
-}
-
-document.querySelectorAll(".nav button").forEach(button=>{
-button.onclick=()=>openPage(button.dataset.page);
-});
-
-function toast(message){
-
-const box=document.getElementById("toast");
-
-box.textContent=message;
-box.classList.add("show");
-
-setTimeout(()=>{
-box.classList.remove("show");
-},2000);
-
-}
-
-function escapeHTML(text){
-
-return String(text)
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
-
-}
-
-function copyText(text){
-
-if(!text)return;
-
-navigator.clipboard.writeText(text)
-.then(()=>toast("Copied!"))
-.catch(()=>toast("Copy failed"));
-
-}
-
-function copyElement(id){
-
-const element=document.getElementById(id);
-
-if(element) copyText(element.innerText);
-
-}
-
-/* =========================
-   REAL AI CONTENT STUDIO
-========================= */
-
-async function generateScripts(){
-
-const topic=document.getElementById("topic").value.trim();
-const niche=document.getElementById("niche").value;
-const platform=document.getElementById("platform").value;
-const style=document.getElementById("style").value;
-const length=document.getElementById("length").value;
-const audience=document.getElementById("audience").value;
-
-const output=document.getElementById("scripts");
-
-if(!topic){
-
-toast("Enter a topic first!");
-
-return;
-
-}
-
-output.innerHTML=`
-<div class="result loading">
-🤖 ViralForge AI is creating your content...
-<br><br>
-Writing hooks, scripts, titles, descriptions and CTAs.
-</div>
+// --------------------------------------------------
+// MAIN AI ENDPOINT
+// --------------------------------------------------
+
+app.post("/api/generate", async (req, res) => {
+  try {
+    const {
+      type = "script",
+      topic = "",
+      niche = "General",
+      platform = "TikTok",
+      style = "High Energy",
+      length = "30 seconds",
+      audience = "Everyone",
+      tone = "Confident",
+      goal = "Growth",
+      count = 3,
+      text = ""
+    } = req.body || {};
+
+    if (!openai) {
+      return res.status(503).json({
+        ok: false,
+        error:
+          "AI is not configured yet. Add OPENAI_API_KEY to your Render environment variables."
+      });
+    }
+
+    // ----------------------------------------------
+    // SCRIPTS
+    // ----------------------------------------------
+
+    if (type === "script" || type === "scripts") {
+      const prompt = `
+You are ViralForge, an expert short-form content strategist.
+
+Create ${Math.min(Number(count) || 3, 5)} DIFFERENT short-form video scripts.
+
+Topic:
+${topic || "Create a strong topic yourself"}
+
+Niche:
+${niche}
+
+Platform:
+${platform}
+
+Style:
+${style}
+
+Length:
+${length}
+
+Audience:
+${audience}
+
+Requirements:
+- Make each version genuinely different.
+- Strong hook in the first sentence.
+- Natural human wording.
+- Do not sound like generic AI writing.
+- Keep sentences easy to say out loud.
+- Include a clear payoff.
+- Include a natural CTA.
+- Do not guarantee virality.
+- Do not use fake statistics.
+- Make the content useful or entertaining.
+
+Format:
+
+VERSION 1
+HOOK:
+...
+
+SCRIPT:
+...
+
+CTA:
+...
+
+VERSION 2
+HOOK:
+...
+
+SCRIPT:
+...
+
+CTA:
+...
+
+Continue for all requested versions.
 `;
 
-try{
+      const result = await generateAI(prompt);
 
-const response=await fetch(
-API_URL+"/api/generate",
-{
-method:"POST",
+      return res.json({
+        ok: true,
+        type: "scripts",
+        result
+      });
+    }
 
-headers:{
-"Content-Type":"application/json"
-},
+    // ----------------------------------------------
+    // HOOKS
+    // ----------------------------------------------
 
-body:JSON.stringify({
-topic,
-niche,
-platform,
-style,
-length,
-audience
-})
-}
-);
+    if (type === "hooks" || type === "hook") {
+      const prompt = `
+You are ViralForge Hook Lab.
 
-const data=await response.json();
+Generate 12 unique short-form video hooks.
 
-if(!response.ok){
+Topic:
+${topic || "a useful creator topic"}
 
-throw new Error(
-data.error||"AI server error"
-);
+Niche:
+${niche}
 
-}
+Hook style:
+${style}
 
-if(!data.result){
+Platform:
+${platform}
 
-throw new Error(
-"No AI content was returned."
-);
+Requirements:
+- Each hook must be different.
+- Make them sound like something a real creator would say.
+- Avoid repetitive formulas.
+- Avoid fake claims.
+- Use curiosity, tension, specificity, questions, surprising observations, or direct statements.
+- Keep each hook concise.
+- Do not guarantee views.
 
-}
-
-const script=data.result;
-
-output.innerHTML="";
-
-const div=document.createElement("div");
-
-div.className="variation";
-
-div.innerHTML=`
-
-<div class="variation-head">
-
-<b>🤖 ViralForge AI</b>
-
-<span class="badge">
-${escapeHTML(platform)}
-</span>
-
-</div>
-
-<div class="result">
-${escapeHTML(script)}
-</div>
-
-<div class="actions">
-
-<button class="btn"
-onclick='copyText(${JSON.stringify(script)})'>
-📋 Copy
-</button>
-
-<button class="btn good"
-onclick='saveContent("AI Script",${JSON.stringify(script)})'>
-💾 Save
-</button>
-
-<button class="btn"
-onclick='
-document.getElementById("scoreText").value=${JSON.stringify(script)};
-openPage("score");
-'>
-📊 Score
-</button>
-
-</div>
+Return exactly 12 numbered hooks.
 `;
 
-output.appendChild(div);
+      const result = await generateAI(prompt);
 
-toast("🔥 AI content generated!");
+      return res.json({
+        ok: true,
+        type: "hooks",
+        result
+      });
+    }
 
-}
+    // ----------------------------------------------
+    // IDEAS
+    // ----------------------------------------------
 
-catch(error){
+    if (type === "ideas" || type === "idea") {
+      const prompt = `
+You are ViralForge Idea Lab.
 
-console.error(error);
+Generate 20 original short-form content ideas.
 
-output.innerHTML=`
+Niche:
+${niche}
 
-<div class="result">
+Platform:
+${platform}
 
-❌ <b>AI generation failed.</b>
+Goal:
+${goal}
 
-<br><br>
+Requirements:
+- Every idea should be meaningfully different.
+- Give each idea a strong title.
+- Include the angle.
+- Include why someone would want to watch.
+- Avoid fake statistics.
+- Avoid generic ideas whenever possible.
+- Make ideas realistic for a creator to make.
 
-${escapeHTML(error.message)}
+Format:
 
-<br><br>
+1. TITLE
+Angle:
+Why it could work:
 
-Check your Render backend and make sure it is running.
-
-</div>
+Continue through 20.
 `;
 
-toast("AI generation failed");
+      const result = await generateAI(prompt);
 
-}
+      return res.json({
+        ok: true,
+        type: "ideas",
+        result
+      });
+    }
 
-}
+    // ----------------------------------------------
+    // CAPTION
+    // ----------------------------------------------
 
-/* =========================
-   HOOKS
-========================= */
+    if (type === "caption" || type === "captions") {
+      const prompt = `
+You are ViralForge Caption Maker.
 
-const hooks=[
-t=>`Stop scrolling if you want to understand ${t}.`,
-t=>`Most people get ${t} completely wrong.`,
-t=>`I wish I knew this before I started ${t}.`,
-t=>`Nobody talks about this part of ${t}.`,
-t=>`Before you try ${t}, watch this.`,
-t=>`The biggest mistake with ${t} is surprisingly simple.`,
-t=>`I tested this so you don't have to.`,
-t=>`If I started ${t} from zero, this is what I'd do.`,
-t=>`Here's something about ${t} that sounds wrong but isn't.`,
-t=>`You are probably making this mistake with ${t}.`,
-t=>`This changed how I think about ${t}.`,
-t=>`Three things you need to know about ${t}.`,
-t=>`Nobody tells beginners this about ${t}.`,
-t=>`I can explain ${t} in under 30 seconds.`,
-t=>`The truth about ${t} is simpler than you think.`,
-t=>`Don't waste another day doing ${t} this way.`,
-t=>`If you're struggling with ${t}, try this.`,
-t=>`This is why your ${t} isn't working.`,
-t=>`Want better results with ${t}? Start here.`,
-t=>`Here's what nobody warned me about ${t}.`
-];
+Create a strong social-media caption.
 
-function shuffle(array){
+Topic:
+${topic || "this video"}
 
-const copy=[...array];
+Tone:
+${tone}
 
-for(let i=copy.length-1;i>0;i--){
+Platform:
+${platform}
 
-const j=Math.floor(Math.random()*(i+1));
+Requirements:
+- Natural human writing.
+- Do not sound corporate.
+- Start with an interesting first line.
+- Match the requested tone.
+- Encourage comments naturally.
+- Include a small number of relevant hashtags.
+- Do not promise virality.
+- Do not use fake statistics.
 
-[copy[i],copy[j]]=[copy[j],copy[i]];
+Return:
+CAPTION:
+...
 
-}
-
-return copy;
-}
-
-function generateHooks(){
-
-const topic=document.getElementById("hookTopic").value.trim()||"this topic";
-
-const results=shuffle(hooks)
-.slice(0,12)
-.map(fn=>fn(topic));
-
-document.getElementById("hookOutput").innerText=
-results.map((hook,index)=>`${index+1}. ${hook}`).join("\n\n");
-
-toast("12 hooks generated");
-
-}
-
-/* =========================
-   IDEAS
-========================= */
-
-const nicheIdeas={
-
-General:[
-"a common mistake",
-"a simple beginner strategy",
-"three things worth knowing",
-"something nobody explains",
-"a lesson I learned"
-],
-
-Gaming:[
-"three mistakes beginners make",
-"a hidden trick players miss",
-"the fastest way to improve",
-"something I wish I knew earlier",
-"a mistake costing players wins"
-],
-
-Sports:[
-"three habits beginners should build",
-"a common training mistake",
-"what I would practice first",
-"something coaches notice",
-"a simple way to improve"
-],
-
-Education:[
-"a study mistake",
-"a simple way to understand it",
-"something school rarely explains",
-"a beginner-friendly method",
-"a better way to remember it"
-],
-
-Fitness:[
-"a beginner mistake",
-"a simple habit",
-"a common misconception",
-"a consistency lesson",
-"a practical improvement"
-],
-
-Money:[
-"a common money mistake",
-"a beginner rule",
-"a habit worth learning",
-"a spending mistake",
-"a simple financial lesson"
-],
-
-Tech:[
-"a feature people miss",
-"a common mistake",
-"a useful shortcut",
-"a simple explanation",
-"something worth testing"
-],
-
-Creators:[
-"a beginner creator mistake",
-"a content system",
-"a hook lesson",
-"a consistency lesson",
-"a growth mistake"
-]
-
-};
-
-function generateIdeas(){
-
-const niche=document.getElementById("ideaNiche").value;
-const goal=document.getElementById("ideaGoal").value;
-const platform=document.getElementById("ideaPlatform").value;
-
-const base=nicheIdeas[niche]||nicheIdeas.General;
-
-const angles=[
-"Quick List","Story","Myth vs Fact","Beginner Guide","Mistake",
-"Challenge","Before vs After","Question","Experiment","Unpopular Take",
-"Tutorial","Checklist","Reaction","Case Study","Comparison",
-"Prediction","Do / Don't","Ranking","Explained","Test"
-];
-
-const output=document.getElementById("ideaOutput");
-
-output.innerHTML="";
-
-for(let i=0;i<20;i++){
-
-const idea=
-`${base[i%base.length]} — ${niche} edition`;
-
-const card=document.createElement("div");
-
-card.className="idea card";
-
-card.innerHTML=`
-
-<b>${i+1}. ${angles[i]}</b>
-
-<span class="muted">
-${escapeHTML(idea)}
-</span>
-
-<p class="muted">
-Goal: ${escapeHTML(goal)}
-<br>
-Platform: ${escapeHTML(platform)}
-</p>
-
-<button class="btn">📋 Copy</button>
+HASHTAGS:
+...
 `;
 
-card.querySelector("button").onclick=()=>{
-copyText(idea);
-};
+      const result = await generateAI(prompt);
 
-output.appendChild(card);
+      return res.json({
+        ok: true,
+        type: "caption",
+        result
+      });
+    }
 
-}
+    // ----------------------------------------------
+    // VIRAL SCORE
+    // ----------------------------------------------
 
-toast("20 ideas generated");
+    if (type === "score" || type === "analyze") {
+      const prompt = `
+You are ViralForge's content scoring system.
 
-}
+Analyze this short-form content:
 
-/* =========================
-   CAPTIONS
-========================= */
+${text || topic}
 
-function generateCaption(){
+Give a writing-quality score from 0-100.
 
-const topic=document.getElementById("captionTopic").value.trim()||"this topic";
+Evaluate:
+1. Hook strength
+2. Curiosity
+3. Clarity
+4. Specificity
+5. Retention potential
+6. Structure
+7. CTA
 
-const tone=document.getElementById("captionTone").value;
+Important:
+- This is NOT a prediction of actual views.
+- Do not claim you can guarantee virality.
+- Give practical improvements.
 
-const platform=document.getElementById("captionPlatform").value;
+Return:
 
-let opening="";
+SCORE: X/100
 
-if(tone==="Funny"){
-opening=`Okay, let's be honest 😂 ${topic} is not as simple as it looks.`;
-}else if(tone==="Curious"){
-opening=`There's something about ${topic} that most people don't notice.`;
-}else if(tone==="Motivational"){
-opening=`Small progress still counts. Here's what ${topic} taught me.`;
-}else if(tone==="Storytelling"){
-opening=`I didn't expect ${topic} to teach me this, but here's what happened.`;
-}else{
-opening=`Here's my take on ${topic}.`;
-}
+HOOK:
+...
 
-let hashtags="";
+CURIOSITY:
+...
 
-if(platform==="TikTok"){
-hashtags="#fyp #creator #content #tips";
-}else if(platform==="Instagram"){
-hashtags="#reels #creator #content #explore";
-}else{
-hashtags="#shorts #youtube #creator #content";
-}
+CLARITY:
+...
 
-const caption=
-`${opening}
+SPECIFICITY:
+...
 
-The main lesson:
+RETENTION:
+...
 
-Keep it simple.
-Test what works.
-Pay attention to the results.
-Then improve.
+STRUCTURE:
+...
 
-What do you think? 👇
+CTA:
+...
 
-Save this for later.
-
-${hashtags}`;
-
-document.getElementById("captionOutput").innerText=caption;
-
-toast("Caption generated");
-
-}
-
-/* =========================
-   SCORE
-========================= */
-
-function analyzeScore(){
-
-const text=document.getElementById("scoreText").value.trim();
-
-if(!text){
-toast("Paste some content first");
-return;
-}
-
-let hook=0;
-let curiosity=0;
-let specificity=0;
-let cta=0;
-let readability=0;
-
-if(/^(stop|here|this|if|most|before|nobody|why|how|i )/i.test(text)){
-hook=20;
-}else if(text.length>30){
-hook=12;
-}
-
-if(/[?!]|\b(secret|mistake|truth|nobody|why|before|unexpected)\b/i.test(text)){
-curiosity=20;
-}else{
-curiosity=8;
-}
-
-if(/\b\d+\b|\b(steps|ways|tips|examples|reasons)\b/i.test(text)){
-specificity=20;
-}else{
-specificity=8;
-}
-
-if(/\b(follow|comment|save|share|subscribe|like)\b/i.test(text)){
-cta=20;
-}else{
-cta=5;
-}
-
-const sentences=text.split(/[.!?]+/).filter(Boolean);
-
-if(sentences.length>=2){
-readability=15;
-}else{
-readability=8;
-}
-
-const total=Math.min(
-100,
-25+hook+curiosity+specificity+cta+readability
-);
-
-document.getElementById("scoreNumber").innerText=total;
-document.getElementById("scoreBar").style.width=total+"%";
-
-let notes=[];
-
-if(hook<18)notes.push("Make the first line more direct.");
-if(curiosity<16)notes.push("Add a curiosity gap or specific question.");
-if(specificity<16)notes.push("Add a number, example or concrete detail.");
-if(cta<16)notes.push("Add a clear action for the viewer.");
-if(readability<12)notes.push("Break the content into shorter beats.");
-
-if(!notes.length){
-notes.push("Strong balance across the checked writing signals.");
-}
-
-document.getElementById("scoreOutput").innerText=
-`Score: ${total}/100
-
-${notes.map(x=>"• "+x).join("\n")}
-
-This score checks writing signals only.
-It cannot predict views or guarantee virality.`;
-
-document.getElementById("scoreStats").innerHTML=`
-
-<div class="stat"><b>${hook}</b><span>Hook</span></div>
-<div class="stat"><b>${curiosity}</b><span>Curiosity</span></div>
-<div class="stat"><b>${specificity}</b><span>Specificity</span></div>
-<div class="stat"><b>${cta}</b><span>CTA</span></div>
+TOP 3 IMPROVEMENTS:
+1.
+2.
+3.
 `;
 
-toast("Content analyzed");
+      const result = await generateAI(prompt);
 
-}
+      return res.json({
+        ok: true,
+        type: "score",
+        result
+      });
+    }
 
-/* =========================
-   SAVED
-========================= */
+    // ----------------------------------------------
+    // UNKNOWN TYPE
+    // ----------------------------------------------
 
-function saveContent(type,text){
+    return res.status(400).json({
+      ok: false,
+      error:
+        "Unknown generation type. Use script, hooks, ideas, caption, or score."
+    });
 
-if(!text)return;
+  } catch (error) {
+    console.error("ViralForge AI error:", error);
 
-const saved=
-JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
+    const status =
+      error?.status &&
+      Number.isInteger(error.status)
+        ? error.status
+        : 500;
 
-saved.unshift({
-type,
-text,
-date:new Date().toLocaleString()
+    return res.status(status).json({
+      ok: false,
+      error:
+        error?.message ||
+        "Something went wrong while generating content."
+    });
+  }
 });
 
-localStorage.setItem(
-"viralforgeSaved",
-JSON.stringify(saved.slice(0,100))
-);
-
-toast("Saved!");
-
-}
-
-function saveCurrent(type,id){
-
-const element=document.getElementById(id);
-
-if(element){
-saveContent(type,element.innerText);
-}
-
-}
-
-function renderSaved(){
-
-const output=document.getElementById("savedOutput");
-
-const saved=
-JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
-
-if(!saved.length){
-
-output.innerHTML=
-`<div class="result">Nothing saved yet.</div>`;
-
-return;
-
-}
-
-output.innerHTML=saved.map((item,index)=>`
-
-<div class="history-item">
-
-<div>
-
-<b>${escapeHTML(item.type)}</b>
-
-<br>
-
-<small class="muted">
-${escapeHTML(item.date)}
-</small>
-
-<p class="muted">
-${escapeHTML(item.text.substring(0,250))}
-${item.text.length>250?"...":""}
-</p>
-
-</div>
-
-<div class="actions">
-
-<button class="btn" onclick="copySaved(${index})">
-Copy
-</button>
-
-<button class="btn danger" onclick="deleteSaved(${index})">
-Delete
-</button>
-
-</div>
-
-</div>
-
-`).join("");
-
-}
-
-function copySaved(index){
-
-const saved=
-JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
-
-copyText(saved[index].text);
-
-}
-
-function deleteSaved(index){
-
-const saved=
-JSON.parse(localStorage.getItem("viralforgeSaved")||"[]");
-
-saved.splice(index,1);
-
-localStorage.setItem(
-"viralforgeSaved",
-JSON.stringify(saved)
-);
-
-renderSaved();
-toast("Deleted");
-
-}
-
-function clearSaved(){
-
-if(!confirm("Delete all saved content?"))return;
-
-localStorage.removeItem("viralforgeSaved");
-
-renderSaved();
-
-toast("All saved content cleared");
-
-}
-
-/* =========================
-   RANDOM
-========================= */
-
-function surpriseMe(){
-
-const topics=[
-"3 mistakes beginners make in gaming",
-"how to get better at basketball",
-"a study trick that actually helps",
-"what I learned after failing",
-"3 useful phone features",
-"how I would start a channel from zero",
-"a simple money habit",
-"how to make better short videos",
-"the biggest creator mistake",
-"something nobody tells beginners"
-];
-
-const topic=topics[Math.floor(Math.random()*topics.length)];
-
-document.getElementById("topic").value=topic;
-
-openPage("studio");
-
-toast("Random idea loaded");
-
-}
-
-function randomHook(){
-
-const topics=[
-"growing on YouTube",
-"getting better at basketball",
-"learning faster",
-"starting a gaming channel",
-"saving money",
-"making better videos",
-"staying consistent",
-"getting more views"
-];
-
-document.getElementById("hookTopic").value=
-topics[Math.floor(Math.random()*topics.length)];
-
-generateHooks();
-
-}
-
-/* =========================
-   SETTINGS
-========================= */
-
-function saveSettings(){
-
-localStorage.setItem(
-"viralforgeDefaultNiche",
-document.getElementById("defaultNiche").value
-);
-
-toast("Settings saved");
-
-}
-
-function resetSettings(){
-
-localStorage.removeItem("viralforgeDefaultNiche");
-
-document.getElementById("defaultNiche").value="General";
-
-toast("Settings reset");
-
-}
-
-const savedNiche=
-localStorage.getItem("viralforgeDefaultNiche");
-
-if(savedNiche){
-document.getElementById("defaultNiche").value=savedNiche;
-}
-
-/* =========================
-   KEYBOARD
-========================= */
-
-document.addEventListener("keydown",event=>{
-
-if(
-(event.ctrlKey||event.metaKey)&&
-event.key.toLowerCase()==="k"
-){
-
-event.preventDefault();
-
-openPage("studio");
-
-document.getElementById("topic").focus();
-
-}
-
+// --------------------------------------------------
+// ERROR HANDLER
+// --------------------------------------------------
+
+app.use((err, req, res, next) => {
+  console.error("Server error:", err);
+
+  res.status(500).json({
+    ok: false,
+    error: "Internal server error."
+  });
 });
 
-/* =========================
-   START
-========================= */
+// --------------------------------------------------
+// START SERVER
+// --------------------------------------------------
 
-renderSaved();
-
-</script>
-
-</body>
-</html>
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("");
+  console.log("====================================");
+  console.log("      VIRALFORGE AI BACKEND");
+  console.log("====================================");
+  console.log(`Port: ${PORT}`);
+  console.log(`OpenAI: ${openai ? "CONNECTED" : "NOT CONFIGURED"}`);
+  console.log(`Model: ${MODEL}`);
+  console.log("====================================");
+  console.log("");
+});
