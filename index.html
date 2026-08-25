@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07090f">
+<title>ViralForge AI Studio</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07090f;color:#f7f8fc;font-family:Inter,system-ui,-apple-system,sans-serif}
+button,input,select,textarea{font:inherit}.app{min-height:100vh;display:flex}.side{width:245px;border-right:1px solid #202531;padding:20px;background:#0a0d14;position:sticky;top:0;height:100vh}
+.brand{font-weight:900;font-size:20px;margin-bottom:28px}.brand i{color:#8b6cff;font-style:normal}.nav button{display:block;width:100%;text-align:left;background:none;border:0;color:#9ca5b5;padding:12px;border-radius:10px;margin:3px 0;cursor:pointer}.nav button.active,.nav button:hover{background:#171b27;color:#fff}
+.main{flex:1;padding:24px;max-width:1400px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.top h1{margin:0;font-size:30px}.status{color:#54e39a;font-size:13px;margin-top:4px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:20px}.card{background:#0e121b;border:1px solid #202531;border-radius:16px;padding:18px}.card h2{font-size:16px;margin:0 0 15px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{background:#0a0d14;border:1px solid #202531;border-radius:12px;padding:13px}.stat b{font-size:22px;display:block}.stat span,.small{font-size:11px;color:#8e98a9}
+.field{margin:11px 0}.field label{display:block;color:#8e98a9;font-size:12px;margin-bottom:6px}input,select,textarea{width:100%;background:#0a0d14;border:1px solid #29303d;color:#fff;padding:11px;border-radius:9px}textarea{min-height:100px;resize:vertical}
+.primary{background:#7657ff;border:0;color:white;padding:11px 15px;border-radius:9px;font-weight:800;cursor:pointer}.secondary{background:#1a202b;border:1px solid #2b3340;color:#fff;padding:11px 15px;border-radius:9px;cursor:pointer}.danger{background:#39202a;border:1px solid #673242;color:#ffb7c8;padding:11px 15px;border-radius:9px;cursor:pointer}.actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.toggle{display:flex;justify-content:space-between;background:#0a0d14;border:1px solid #29303d;padding:12px;border-radius:10px}.toggle input{width:auto}.queue{display:grid;gap:9px}.video{padding:13px;border:1px solid #222a37;border-radius:11px;background:#0a0d14}.meta{color:#8e98a9;font-size:11px;margin-top:5px}.pill{float:right;background:#17251f;color:#55dfa0;padding:3px 7px;border-radius:20px;font-size:10px}.log{height:180px;overflow:auto;background:#07090d;border-radius:10px;padding:10px;color:#aeb7c6;font:11px ui-monospace,monospace}.hint{font-size:12px;color:#8e98a9;line-height:1.5}.wide{grid-column:1/-1}.bar{height:8px;background:#202531;border-radius:20px;overflow:hidden;margin:6px 0 14px}.bar span{display:block;height:100%;background:#7657ff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hidden{display:none}.notice{padding:12px;border:1px solid #2a3342;background:#0a0d14;border-radius:10px;color:#b8c1d0;font-size:12px;line-height:1.5}.queueEmpty{color:#778193;font-size:13px;padding:15px;text-align:center;border:1px dashed #29303d;border-radius:10px}
+@media(max-width:800px){.side{display:none}.main{padding:16px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.top h1{font-size:24px}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">ViralForge <i>AI Studio</i></div>
+  <div class="nav">
+    <button class="active" data-tab="center">⚡ Command Center</button>
+    <button data-tab="production">🎬 Production</button>
+    <button data-tab="analytics">📈 Analytics</button>
+    <button data-tab="ideas">🧠 Idea Lab</button>
+    <button data-tab="automation">⚙️ Automation</button>
+  </div>
+</aside>
+
+<main class="main">
+<div class="top">
+  <div><h1 id="pageTitle">Autopilot Command Center</h1><div class="status">● Local system online</div></div>
+  <button class="primary" onclick="runBatch()">RUN NOW</button>
+</div>
+
+<div id="center" class="tab">
+  <div class="grid">
+    <section class="card wide"><div class="stats">
+      <div class="stat"><b id="ideas">0</b><span>IDEAS</span></div>
+      <div class="stat"><b id="scripts">0</b><span>SCRIPTS</span></div>
+      <div class="stat"><b id="renders">0</b><span>RENDERS</span></div>
+      <div class="stat"><b id="published">0</b><span>PUBLISHED</span></div>
+      <div class="stat"><b id="runs">0</b><span>RUNS</span></div>
+    </div></section>
+
+    <section class="card">
+      <h2>Autopilot</h2>
+      <div class="toggle"><span>Repeat batches</span><input id="auto" type="checkbox"></div>
+      <div class="field"><label>Niche</label><input id="niche" value="Impossible Reality"></div>
+      <div class="row">
+        <div class="field"><label>Batch size</label><select id="size"><option>5</option><option selected>10</option><option>20</option></select></div>
+        <div class="field"><label>Schedule</label><select id="schedule"><option>Every 30 seconds (test)</option><option>Every hour</option><option>Every 6 hours</option><option>Daily</option></select></div>
+      </div>
+      <div class="actions"><button class="primary" onclick="runBatch()">Generate batch</button><button class="secondary" onclick="stopAuto()">Stop</button></div>
+      <p class="hint">Test mode generates the full content pipeline locally. Nothing is uploaded without an explicit YouTube connection.</p>
+    </section>
+
+    <section class="card">
+      <h2>Pipeline</h2>
+      <div class="small">Idea selection</div><div class="bar"><span id="p1" style="width:100%"></span></div>
+      <div class="small">Script + hook</div><div class="bar"><span id="p2" style="width:100%"></span></div>
+      <div class="small">Video render</div><div class="bar"><span id="p3" style="width:0%"></span></div>
+      <div class="small">Quality check</div><div class="bar"><span id="p4" style="width:0%"></span></div>
+      <div class="small">Publish</div><div class="bar"><span id="p5" style="width:0%"></span></div>
+    </section>
+
+    <section class="card">
+      <h2>Activity</h2><div class="log" id="log">ViralForge initialized. Test pipeline ready.</div>
+    </section>
+
+    <section class="card wide">
+      <h2>Production Queue</h2><div class="queue" id="queue"><div class="queueEmpty">Nothing queued yet. Press RUN NOW.</div></div>
+    </section>
+  </div>
+</div>
+
+<div id="production" class="tab hidden">
+  <div class="grid">
+    <section class="card wide"><h2>Content Builder</h2>
+      <div class="field"><label>Topic</label><input id="topic" placeholder="Example: What if Earth had rings?"></div>
+      <div class="field"><label>Extra instructions</label><textarea id="instructions" placeholder="Fast hook, simple language, 30–45 seconds..."></textarea></div>
+      <div class="actions"><button class="primary" onclick="createOne()">Create video package</button><button class="secondary" onclick="downloadQueue()">Export queue</button></div>
+    </section>
+  </div>
+</div>
+
+<div id="analytics" class="tab hidden">
+  <div class="grid"><section class="card wide"><h2>Analytics</h2>
+    <div class="stats">
+      <div class="stat"><b id="aQueue">0</b><span>QUEUE ITEMS</span></div>
+      <div class="stat"><b id="aDone">0</b><span>COMPLETED</span></div>
+      <div class="stat"><b id="aRate">0%</b><span>TEST SUCCESS</span></div>
+      <div class="stat"><b id="aRuns">0</b><span>BATCHES</span></div>
+      <div class="stat"><b id="aPublished">0</b><span>PUBLISHED</span></div>
+    </div>
+  </section></div>
+</div>
+
+<div id="ideas" class="tab hidden">
+  <div class="grid"><section class="card wide"><h2>Idea Lab</h2>
+    <div class="field"><label>Niche</label><input id="ideaNiche" value="Impossible Reality"></div>
+    <button class="primary" onclick="makeIdeas()">Generate 10 ideas</button>
+    <div class="queue" id="ideaList" style="margin-top:12px"></div>
+  </section></div>
+</div>
+
+<div id="automation" class="tab hidden">
+  <div class="grid">
+    <section class="card"><h2>Automation Settings</h2>
+      <div class="notice">The browser can safely run the local test pipeline. Real YouTube publishing requires OAuth/API credentials and should be connected through a secure backend rather than putting secrets in this HTML file.</div>
+      <div class="field"><label>Channel name</label><input id="channel" placeholder="Your channel"></div>
+      <div class="field"><label>Default visibility</label><select id="visibility"><option>Private</option><option>Unlisted</option><option>Public</option></select></div>
+      <button class="secondary" onclick="saveSettings()">Save settings</button>
+    </section>
+    <section class="card"><h2>YouTube Connection</h2>
+      <div class="notice">Connection status: <b id="ytStatus">Not connected</b><br><br>This demo intentionally does not fake a successful upload. When a secure YouTube OAuth backend is added, this button can be wired to it.</div>
+      <div class="actions"><button class="primary" onclick="alert('YouTube OAuth needs a backend/client configuration before it can connect safely.')">Connect YouTube</button><button class="danger" onclick="clearData()">Reset local data</button></div>
+    </section>
+  </div>
+</div>
+</main></div>
+
+<script>
+const ideas=[
+"What if Earth had two moons?","POV: you wake up 500 years in the future.","What would a school on Mars look like?",
+"What if gravity disappeared for 10 seconds?","A city built inside a volcano.","What if humans could see time?",
+"The last city on Earth.","A hotel inside Jupiter.","What if the ocean vanished overnight?","A civilization underneath Antarctica."
+];
+const state=JSON.parse(localStorage.getItem("vf_state")||'{"ideas":0,"scripts":0,"renders":0,"published":0,"runs":0,"done":0,"queue":[]}');
+let timer=null;
+
+function save(){localStorage.setItem("vf_state",JSON.stringify(state));renderStats();renderQueue();}
+function renderStats(){
+ ["ideas","scripts","renders","published","runs"].forEach(k=>document.getElementById(k).textContent=state[k]);
+ document.getElementById("aQueue").textContent=state.queue.length;
+ document.getElementById("aDone").textContent=state.done;
+ document.getElementById("aRuns").textContent=state.runs;
+ document.getElementById("aPublished").textContent=state.published;
+ document.getElementById("aRate").textContent=state.runs?Math.round((state.done/Math.max(1,state.runs*10))*100)+"%":"0%";
+}
+function log(t){const x=document.getElementById("log");x.innerHTML+="<br>"+new Date().toLocaleTimeString()+" — "+t;x.scrollTop=x.scrollHeight;}
+function setProgress(a,b,c,d,e){["p1","p2","p3","p4","p5"].forEach((id,i)=>document.getElementById(id).style.width=[a,b,c,d,e][i]+"%");}
+function makePackage(title,niche){
+ const hook="You won't believe what happens when "+title.toLowerCase()+".";
+ const script=hook+" Here is the quick explanation: "+title+". Follow for more fast facts and strange ideas.";
+ return {id:crypto.randomUUID(),title,niche,hook,script,status:"READY",created:new Date().toISOString()};
+}
+function runBatch(){
+ const n=Number(document.getElementById("size").value), niche=document.getElementById("niche").value.trim()||"General";
+ state.runs++; state.ideas+=n; state.scripts+=n; state.renders+=n;
+ setProgress(100,75,40,10,0); log("Starting batch #"+state.runs+" for "+niche+"...");
+ for(let i=0;i<n;i++){
+   const title=ideas[(state.ideas-n+i)%ideas.length];
+   state.queue.unshift(makePackage(title,niche));
+ }
+ save(); log(n+" video packages created. Render simulation complete.");
+ setProgress(100,100,100,100,0);
+ if(document.getElementById("auto").checked) armAuto();
+}
+function createOne(){
+ const title=document.getElementById("topic").value.trim()||ideas[Math.floor(Math.random()*ideas.length)];
+ const niche=document.getElementById("niche").value.trim()||"General";
+ state.ideas++;state.scripts++;state.renders++;state.queue.unshift(makePackage(title,niche));
+ save();log("Created one package: "+title);alert("Video package created and added to the queue.");
+}
+function renderQueue(){
+ const q=document.getElementById("queue");
+ if(!state.queue.length){q.innerHTML='<div class="queueEmpty">Nothing queued yet. Press RUN NOW.</div>';return;}
+ q.innerHTML=state.queue.map(v=>`<div class="video"><b>${esc(v.title)}</b><span class="pill">${v.status}</span><div class="meta">Hook: ${esc(v.hook)}</div><div class="meta">Script: ${esc(v.script)}</div><div class="actions"><button class="secondary" onclick="downloadOne('${v.id}')">Export</button><button class="primary" onclick="complete('${v.id}')">Mark complete</button></div></div>`).join("");
+}
+function complete(id){const v=state.queue.find(x=>x.id===id);if(!v)return;v.status="COMPLETE";state.done++;save();log("Completed: "+v.title);}
+function downloadOne(id){const v=state.queue.find(x=>x.id===id);if(v)download("viralforge-video-package.json",JSON.stringify(v,null,2),"application/json");}
+function downloadQueue(){download("viralforge-queue.json",JSON.stringify(state.queue,null,2),"application/json");}
+function download(name,data,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href);}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function armAuto(){
+ stopAuto(false);
+ const v=document.getElementById("schedule").value;
+ const ms=v.startsWith("Every 30")?30000:v==="Daily"?86400000:v==="Every 6 hours"?21600000:3600000;
+ timer=setInterval(runBatch,ms);log("Autopilot armed: "+v);
+}
+function stopAuto(message=true){if(timer){clearInterval(timer);timer=null}if(message)log("Autopilot stopped");}
+document.getElementById("auto").addEventListener("change",e=>e.target.checked?armAuto():stopAuto());
+
+function makeIdeas(){
+ const niche=document.getElementById("ideaNiche").value||"General";
+ const list=document.getElementById("ideaList");list.innerHTML="";
+ for(let i=0;i<10;i++){const title=ideas[(i+state.ideas)%ideas.length]+" — "+niche;const d=document.createElement("div");d.className="video";d.innerHTML="<b>"+esc(title)+"</b>";list.appendChild(d);}
+ log("Generated 10 idea suggestions for "+niche);
+}
+function saveSettings(){localStorage.setItem("vf_channel",document.getElementById("channel").value);localStorage.setItem("vf_visibility",document.getElementById("visibility").value);log("Automation settings saved.");}
+function clearData(){if(confirm("Reset all local ViralForge data?")){localStorage.removeItem("vf_state");location.reload();}}
+document.querySelectorAll(".nav button").forEach(btn=>btn.addEventListener("click",()=>{
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");
+ document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));document.getElementById(btn.dataset.tab).classList.remove("hidden");
+ document.getElementById("pageTitle").textContent=btn.textContent.replace(/^\\S+\\s/,"");
+}));
+renderStats();renderQueue();
+</script>
+</body></html>
