@@ -1,423 +1,689 @@
-import express from "express";
-import cors from "cors";
-import OpenAI from "openai";
+<script>
 
-const app = express();
+const API_URL =
+  "https://viralforge-backend-nl1f.onrender.com";
 
-const PORT = process.env.PORT || 10000;
-const MODEL = process.env.OPENAI_MODEL || "gpt-5.6-luna";
 
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+/* =========================
+   NAVIGATION
+========================= */
 
-// --------------------------------------------------
-// OPENAI
-// --------------------------------------------------
+const pageNames = {
+  home: "Dashboard",
+  studio: "Content Studio",
+  hooks: "Hook Lab",
+  ideas: "Idea Lab",
+  captions: "Captions",
+  score: "Viral Score",
+  saved: "Saved Content",
+  settings: "Settings"
+};
 
-const apiKey = process.env.OPENAI_API_KEY;
+function openPage(id) {
 
-const openai = apiKey
-  ? new OpenAI({ apiKey })
-  : null;
-
-// --------------------------------------------------
-// HEALTH CHECK
-// --------------------------------------------------
-
-app.get("/", (req, res) => {
-  res.json({
-    ok: true,
-    name: "ViralForge AI Studio Backend",
-    status: openai ? "AI connected" : "AI key missing",
-    model: MODEL
+  document.querySelectorAll(".page").forEach(p => {
+    p.classList.remove("active");
   });
-});
 
-app.get("/health", (req, res) => {
-  res.json({
-    ok: true,
-    openaiConfigured: Boolean(apiKey),
-    model: MODEL
-  });
-});
+  const page = document.getElementById(id);
 
-// --------------------------------------------------
-// HELPER
-// --------------------------------------------------
-
-async function generateAI(prompt) {
-  if (!openai) {
-    throw new Error(
-      "OPENAI_API_KEY is not configured on the server."
-    );
+  if (page) {
+    page.classList.add("active");
   }
 
-  const response = await openai.responses.create({
-    model: MODEL,
-    input: prompt
+  document.querySelectorAll(".nav button").forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      btn.dataset.page === id
+    );
   });
 
-  return response.output_text || "";
+  document.getElementById("pageTitle").textContent =
+    pageNames[id] || id;
+
+  if (id === "saved") {
+    renderSaved();
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
-// --------------------------------------------------
-// MAIN AI ENDPOINT
-// --------------------------------------------------
 
-app.post("/api/generate", async (req, res) => {
+document.querySelectorAll(".nav button").forEach(btn => {
+
+  btn.onclick = () => {
+    openPage(btn.dataset.page);
+  };
+
+});
+
+
+/* =========================
+   TOAST
+========================= */
+
+function toast(message) {
+
+  const box = document.getElementById("toast");
+
+  if (!box) return;
+
+  box.textContent = message;
+  box.classList.add("show");
+
+  setTimeout(() => {
+    box.classList.remove("show");
+  }, 2200);
+}
+
+
+/* =========================
+   AI REQUEST
+========================= */
+
+async function ai(type, data = {}) {
+
+  toast("AI is working...");
+
   try {
-    const {
-      type = "script",
-      topic = "",
-      niche = "General",
-      platform = "TikTok",
-      style = "High Energy",
-      length = "30 seconds",
-      audience = "Everyone",
-      tone = "Confident",
-      goal = "Growth",
-      count = 3,
-      text = ""
-    } = req.body || {};
 
-    if (!openai) {
-      return res.status(503).json({
-        ok: false,
-        error:
-          "AI is not configured yet. Add OPENAI_API_KEY to your Render environment variables."
-      });
+    const response = await fetch(
+      `${API_URL}/api/generate`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          type,
+          ...data
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(
+        result.error || "AI request failed."
+      );
     }
 
-    // ----------------------------------------------
-    // SCRIPTS
-    // ----------------------------------------------
-
-    if (type === "script" || type === "scripts") {
-      const prompt = `
-You are ViralForge, an expert short-form content strategist.
-
-Create ${Math.min(Number(count) || 3, 5)} DIFFERENT short-form video scripts.
-
-Topic:
-${topic || "Create a strong topic yourself"}
-
-Niche:
-${niche}
-
-Platform:
-${platform}
-
-Style:
-${style}
-
-Length:
-${length}
-
-Audience:
-${audience}
-
-Requirements:
-- Make each version genuinely different.
-- Strong hook in the first sentence.
-- Natural human wording.
-- Do not sound like generic AI writing.
-- Keep sentences easy to say out loud.
-- Include a clear payoff.
-- Include a natural CTA.
-- Do not guarantee virality.
-- Do not use fake statistics.
-- Make the content useful or entertaining.
-
-Format:
-
-VERSION 1
-HOOK:
-...
-
-SCRIPT:
-...
-
-CTA:
-...
-
-VERSION 2
-HOOK:
-...
-
-SCRIPT:
-...
-
-CTA:
-...
-
-Continue for all requested versions.
-`;
-
-      const result = await generateAI(prompt);
-
-      return res.json({
-        ok: true,
-        type: "scripts",
-        result
-      });
-    }
-
-    // ----------------------------------------------
-    // HOOKS
-    // ----------------------------------------------
-
-    if (type === "hooks" || type === "hook") {
-      const prompt = `
-You are ViralForge Hook Lab.
-
-Generate 12 unique short-form video hooks.
-
-Topic:
-${topic || "a useful creator topic"}
-
-Niche:
-${niche}
-
-Hook style:
-${style}
-
-Platform:
-${platform}
-
-Requirements:
-- Each hook must be different.
-- Make them sound like something a real creator would say.
-- Avoid repetitive formulas.
-- Avoid fake claims.
-- Use curiosity, tension, specificity, questions, surprising observations, or direct statements.
-- Keep each hook concise.
-- Do not guarantee views.
-
-Return exactly 12 numbered hooks.
-`;
-
-      const result = await generateAI(prompt);
-
-      return res.json({
-        ok: true,
-        type: "hooks",
-        result
-      });
-    }
-
-    // ----------------------------------------------
-    // IDEAS
-    // ----------------------------------------------
-
-    if (type === "ideas" || type === "idea") {
-      const prompt = `
-You are ViralForge Idea Lab.
-
-Generate 20 original short-form content ideas.
-
-Niche:
-${niche}
-
-Platform:
-${platform}
-
-Goal:
-${goal}
-
-Requirements:
-- Every idea should be meaningfully different.
-- Give each idea a strong title.
-- Include the angle.
-- Include why someone would want to watch.
-- Avoid fake statistics.
-- Avoid generic ideas whenever possible.
-- Make ideas realistic for a creator to make.
-
-Format:
-
-1. TITLE
-Angle:
-Why it could work:
-
-Continue through 20.
-`;
-
-      const result = await generateAI(prompt);
-
-      return res.json({
-        ok: true,
-        type: "ideas",
-        result
-      });
-    }
-
-    // ----------------------------------------------
-    // CAPTION
-    // ----------------------------------------------
-
-    if (type === "caption" || type === "captions") {
-      const prompt = `
-You are ViralForge Caption Maker.
-
-Create a strong social-media caption.
-
-Topic:
-${topic || "this video"}
-
-Tone:
-${tone}
-
-Platform:
-${platform}
-
-Requirements:
-- Natural human writing.
-- Do not sound corporate.
-- Start with an interesting first line.
-- Match the requested tone.
-- Encourage comments naturally.
-- Include a small number of relevant hashtags.
-- Do not promise virality.
-- Do not use fake statistics.
-
-Return:
-CAPTION:
-...
-
-HASHTAGS:
-...
-`;
-
-      const result = await generateAI(prompt);
-
-      return res.json({
-        ok: true,
-        type: "caption",
-        result
-      });
-    }
-
-    // ----------------------------------------------
-    // VIRAL SCORE
-    // ----------------------------------------------
-
-    if (type === "score" || type === "analyze") {
-      const prompt = `
-You are ViralForge's content scoring system.
-
-Analyze this short-form content:
-
-${text || topic}
-
-Give a writing-quality score from 0-100.
-
-Evaluate:
-1. Hook strength
-2. Curiosity
-3. Clarity
-4. Specificity
-5. Retention potential
-6. Structure
-7. CTA
-
-Important:
-- This is NOT a prediction of actual views.
-- Do not claim you can guarantee virality.
-- Give practical improvements.
-
-Return:
-
-SCORE: X/100
-
-HOOK:
-...
-
-CURIOSITY:
-...
-
-CLARITY:
-...
-
-SPECIFICITY:
-...
-
-RETENTION:
-...
-
-STRUCTURE:
-...
-
-CTA:
-...
-
-TOP 3 IMPROVEMENTS:
-1.
-2.
-3.
-`;
-
-      const result = await generateAI(prompt);
-
-      return res.json({
-        ok: true,
-        type: "score",
-        result
-      });
-    }
-
-    // ----------------------------------------------
-    // UNKNOWN TYPE
-    // ----------------------------------------------
-
-    return res.status(400).json({
-      ok: false,
-      error:
-        "Unknown generation type. Use script, hooks, ideas, caption, or score."
-    });
+    return result.result;
 
   } catch (error) {
-    console.error("ViralForge AI error:", error);
 
-    const status =
-      error?.status &&
-      Number.isInteger(error.status)
-        ? error.status
-        : 500;
+    console.error(error);
 
-    return res.status(status).json({
-      ok: false,
-      error:
-        error?.message ||
-        "Something went wrong while generating content."
-    });
+    toast("AI error");
+
+    throw error;
   }
-});
+}
 
-// --------------------------------------------------
-// ERROR HANDLER
-// --------------------------------------------------
 
-app.use((err, req, res, next) => {
-  console.error("Server error:", err);
+/* =========================
+   SCRIPTS
+========================= */
 
-  res.status(500).json({
-    ok: false,
-    error: "Internal server error."
+async function generateScripts() {
+
+  const topic =
+    document.getElementById("topic").value.trim();
+
+  if (!topic) {
+    toast("Enter a topic first.");
+    return;
+  }
+
+  try {
+
+    const result = await ai("scripts", {
+
+      topic,
+
+      niche:
+        document.getElementById("niche").value,
+
+      platform:
+        document.getElementById("platform").value,
+
+      style:
+        document.getElementById("style").value,
+
+      length:
+        document.getElementById("length").value,
+
+      audience:
+        document.getElementById("audience").value
+
+    });
+
+    const output =
+      document.getElementById("scripts");
+
+    output.innerHTML = "";
+
+    const box =
+      document.createElement("div");
+
+    box.className = "result";
+
+    box.textContent = result;
+
+    output.appendChild(box);
+
+    const actions =
+      document.createElement("div");
+
+    actions.className = "actions";
+
+    actions.innerHTML = `
+      <button class="btn" id="copyScripts">
+        📋 Copy
+      </button>
+
+      <button class="btn good" id="saveScripts">
+        💾 Save
+      </button>
+
+      <button class="btn" id="scoreScripts">
+        📊 Score
+      </button>
+    `;
+
+    output.appendChild(actions);
+
+    document
+      .getElementById("copyScripts")
+      .onclick = () => copyText(result);
+
+    document
+      .getElementById("saveScripts")
+      .onclick = () =>
+        saveContent("AI Scripts", result);
+
+    document
+      .getElementById("scoreScripts")
+      .onclick = () => {
+
+        document.getElementById("scoreText")
+          .value = result;
+
+        openPage("score");
+      };
+
+    toast("AI scripts generated!");
+
+  } catch {
+    document.getElementById("scripts").innerHTML =
+      `<div class="result">
+        AI generation failed. Check your Render backend.
+      </div>`;
+  }
+}
+
+
+/* =========================
+   HOOKS
+========================= */
+
+async function generateHooks() {
+
+  const topic =
+    document.getElementById("hookTopic")
+      .value.trim();
+
+  if (!topic) {
+    toast("Enter a topic first.");
+    return;
+  }
+
+  try {
+
+    const result = await ai("hooks", {
+
+      topic,
+
+      niche:
+        document.getElementById("hookNiche").value,
+
+      platform:
+        "Short-form",
+
+      style:
+        document.getElementById("hookStyle").value
+
+    });
+
+    document.getElementById("hookOutput")
+      .innerText = result;
+
+    toast("AI hooks generated!");
+
+  } catch {
+
+    document.getElementById("hookOutput")
+      .innerText =
+      "AI generation failed.";
+
+  }
+}
+
+
+/* =========================
+   IDEAS
+========================= */
+
+async function generateIdeas() {
+
+  try {
+
+    const result = await ai("ideas", {
+
+      niche:
+        document.getElementById("ideaNiche").value,
+
+      platform:
+        document.getElementById("ideaPlatform").value,
+
+      goal:
+        document.getElementById("ideaGoal").value
+
+    });
+
+    document.getElementById("ideaOutput")
+      .innerHTML = `
+        <div class="card full">
+          <div class="result">${escapeHTML(result)}</div>
+
+          <div class="actions">
+            <button class="btn"
+              onclick='copyText(${JSON.stringify(result)})'>
+              📋 Copy
+            </button>
+
+            <button class="btn good"
+              onclick='saveContent("AI Ideas",${JSON.stringify(result)})'>
+              💾 Save
+            </button>
+          </div>
+        </div>
+      `;
+
+    toast("AI ideas generated!");
+
+  } catch {
+
+    toast("AI generation failed.");
+
+  }
+}
+
+
+/* =========================
+   CAPTION
+========================= */
+
+async function generateCaption() {
+
+  const topic =
+    document.getElementById("captionTopic")
+      .value.trim();
+
+  if (!topic) {
+    toast("Enter a topic first.");
+    return;
+  }
+
+  try {
+
+    const result = await ai("caption", {
+
+      topic,
+
+      tone:
+        document.getElementById("captionTone").value,
+
+      platform:
+        document.getElementById("captionPlatform").value
+
+    });
+
+    document.getElementById("captionOutput")
+      .innerText = result;
+
+    toast("AI captions generated!");
+
+  } catch {
+
+    document.getElementById("captionOutput")
+      .innerText =
+      "AI generation failed.";
+
+  }
+}
+
+
+/* =========================
+   SCORE
+========================= */
+
+async function analyzeScore() {
+
+  const text =
+    document.getElementById("scoreText")
+      .value.trim();
+
+  if (!text) {
+    toast("Paste content first.");
+    return;
+  }
+
+  try {
+
+    const result = await ai("score", {
+      text
+    });
+
+    document.getElementById("scoreOutput")
+      .innerText = result;
+
+    const match =
+      result.match(/(?:SCORE|Score)\s*:\s*(\d{1,3})/);
+
+    if (match) {
+
+      const score =
+        Math.min(
+          100,
+          Number(match[1])
+        );
+
+      document.getElementById("scoreNumber")
+        .innerText = score;
+
+      document.getElementById("scoreBar")
+        .style.width = score + "%";
+
+    }
+
+    toast("AI analysis complete!");
+
+  } catch {
+
+    document.getElementById("scoreOutput")
+      .innerText =
+      "AI analysis failed.";
+
+  }
+}
+
+
+/* =========================
+   COPY
+========================= */
+
+function copyText(text) {
+
+  navigator.clipboard
+    .writeText(text)
+    .then(() => toast("Copied!"))
+    .catch(() => toast("Copy failed."));
+}
+
+
+function copyElement(id) {
+
+  const element =
+    document.getElementById(id);
+
+  if (element) {
+    copyText(element.innerText);
+  }
+}
+
+
+/* =========================
+   SAVED
+========================= */
+
+function saveContent(type, text) {
+
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "viralforgeSaved"
+      ) || "[]"
+    );
+
+  saved.unshift({
+    type,
+    text,
+    date:
+      new Date().toLocaleString()
   });
-});
 
-// --------------------------------------------------
-// START SERVER
-// --------------------------------------------------
+  localStorage.setItem(
+    "viralforgeSaved",
+    JSON.stringify(
+      saved.slice(0, 100)
+    )
+  );
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("");
-  console.log("====================================");
-  console.log("      VIRALFORGE AI BACKEND");
-  console.log("====================================");
-  console.log(`Port: ${PORT}`);
-  console.log(`OpenAI: ${openai ? "CONNECTED" : "NOT CONFIGURED"}`);
-  console.log(`Model: ${MODEL}`);
-  console.log("====================================");
-  console.log("");
-});
+  toast("Saved!");
+}
+
+
+function saveCurrent(type, id) {
+
+  const element =
+    document.getElementById(id);
+
+  if (element) {
+    saveContent(
+      type,
+      element.innerText
+    );
+  }
+}
+
+
+function renderSaved() {
+
+  const output =
+    document.getElementById("savedOutput");
+
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "viralforgeSaved"
+      ) || "[]"
+    );
+
+  if (!saved.length) {
+
+    output.innerHTML =
+      `<div class="result">
+        Nothing saved yet.
+      </div>`;
+
+    return;
+  }
+
+  output.innerHTML =
+    saved.map((item, index) => `
+
+      <div class="history-item">
+
+        <div>
+
+          <b>
+            ${escapeHTML(item.type)}
+          </b>
+
+          <br>
+
+          <small class="muted">
+            ${escapeHTML(item.date)}
+          </small>
+
+          <p class="muted">
+            ${escapeHTML(
+              item.text.substring(0, 300)
+            )}
+          </p>
+
+        </div>
+
+        <div class="actions">
+
+          <button
+            class="btn"
+            onclick="copySaved(${index})">
+            Copy
+          </button>
+
+          <button
+            class="btn danger"
+            onclick="deleteSaved(${index})">
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+}
+
+
+function copySaved(index) {
+
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "viralforgeSaved"
+      ) || "[]"
+    );
+
+  copyText(saved[index].text);
+}
+
+
+function deleteSaved(index) {
+
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "viralforgeSaved"
+      ) || "[]"
+    );
+
+  saved.splice(index, 1);
+
+  localStorage.setItem(
+    "viralforgeSaved",
+    JSON.stringify(saved)
+  );
+
+  renderSaved();
+
+  toast("Deleted.");
+}
+
+
+function clearSaved() {
+
+  localStorage.removeItem(
+    "viralforgeSaved"
+  );
+
+  renderSaved();
+
+  toast("Saved content cleared.");
+}
+
+
+/* =========================
+   ESCAPE
+========================= */
+
+function escapeHTML(text) {
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+/* =========================
+   RANDOM
+========================= */
+
+function surpriseMe() {
+
+  const topics = [
+    "3 mistakes beginners make in gaming",
+    "how to get better at basketball",
+    "a study trick that actually helps",
+    "what I learned after failing",
+    "3 useful phone features",
+    "how to start a channel from zero",
+    "a simple money habit",
+    "how to make better short videos",
+    "the biggest creator mistake",
+    "something nobody tells beginners"
+  ];
+
+  document.getElementById("topic").value =
+    topics[
+      Math.floor(
+        Math.random() * topics.length
+      )
+    ];
+
+  openPage("studio");
+
+  toast("Random topic loaded.");
+}
+
+
+function randomHook() {
+
+  const topics = [
+    "growing on YouTube",
+    "getting better at basketball",
+    "learning faster",
+    "starting a gaming channel",
+    "making better videos",
+    "staying consistent",
+    "getting more views"
+  ];
+
+  document.getElementById("hookTopic").value =
+    topics[
+      Math.floor(
+        Math.random() * topics.length
+      )
+    ];
+
+  generateHooks();
+}
+
+
+/* =========================
+   START
+========================= */
+
+renderSaved();
+
+</script>
