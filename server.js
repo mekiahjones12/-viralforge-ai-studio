@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -8,56 +8,62 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 
-const apiKey = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-const openai = apiKey
-  ? new OpenAI({ apiKey })
+const ai = GEMINI_API_KEY
+  ? new GoogleGenAI({
+      apiKey: GEMINI_API_KEY
+    })
   : null;
 
-// ================================
+// ========================================
 // HEALTH
-// ================================
+// ========================================
 
 app.get("/", (req, res) => {
   res.json({
     ok: true,
     name: "ViralForge AI Studio",
-    version: "4.0.0",
-    aiConfigured: Boolean(apiKey),
-    message: "ViralForge backend is running."
+    version: "5.0.0",
+    aiConfigured: Boolean(GEMINI_API_KEY),
+    features: [
+      "Gemini text generation",
+      "Veo 3.1 video generation"
+    ],
+    message: "ViralForge Gemini backend is running."
   });
 });
 
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
-    aiConfigured: Boolean(apiKey),
+    aiConfigured: Boolean(GEMINI_API_KEY),
     uptime: process.uptime()
   });
 });
 
-// ================================
-// OPENAI
-// ================================
+// ========================================
+// GEMINI TEXT
+// ========================================
 
-async function askAI(prompt) {
-  if (!openai) {
+async function askGemini(prompt) {
+  if (!ai) {
     throw new Error(
-      "OPENAI_API_KEY is not configured on Render."
+      "GEMINI_API_KEY is not configured on the server."
     );
   }
 
-  const response = await openai.responses.create({
-    model: "gpt-5-mini",
-    input: prompt
+  const response = await ai.models.generateContent({
+    model: "gemini-3.6-flash",
+    contents: prompt
   });
 
-  return response.output_text || "";
+  return response.text || "";
 }
 
-// ================================
-// MAIN GENERATOR
-// ================================
+// ========================================
+// MAIN AI GENERATOR
+// ========================================
 
 app.post("/api/generate", async (req, res) => {
   try {
@@ -76,9 +82,9 @@ app.post("/api/generate", async (req, res) => {
 
     let prompt = "";
 
-    // ----------------------------
+    // ====================================
     // SCRIPTS
-    // ----------------------------
+    // ====================================
 
     if (type === "scripts") {
       if (!topic.trim()) {
@@ -89,9 +95,9 @@ app.post("/api/generate", async (req, res) => {
       }
 
       prompt = `
-You are ViralForge AI.
+You are ViralForge AI, an expert short-form content strategist.
 
-Create 3 different short-form video scripts.
+Create 3 highly different short-form video scripts.
 
 Topic: ${topic}
 Niche: ${niche}
@@ -99,8 +105,10 @@ Platform: ${platform}
 Style: ${style}
 Length: ${length}
 Audience: ${audience}
+Tone: ${tone}
+Goal: ${goal}
 
-For each version include:
+For every script use:
 
 HOOK:
 SETUP:
@@ -108,16 +116,25 @@ BODY:
 PAYOFF:
 CTA:
 
-Make the scripts natural, entertaining, and different from each other.
-Do not guarantee virality.
+Make the scripts sound natural when spoken aloud.
+
+Prioritize:
+- strong first 2 seconds
+- curiosity
+- clear storytelling
+- natural language
+- retention
+- specific details
+- an engaging ending
+
+Do not claim that anything is guaranteed to go viral.
 `;
-    }
 
-    // ----------------------------
+    // ====================================
     // HOOKS
-    // ----------------------------
+    // ====================================
 
-    else if (type === "hooks") {
+    } else if (type === "hooks") {
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -128,34 +145,38 @@ Do not guarantee virality.
       prompt = `
 You are ViralForge Hook Lab.
 
-Create exactly 12 short-form video hooks.
+Create exactly 12 strong short-form video hooks.
 
 Topic: ${topic}
 Niche: ${niche}
+Platform: ${platform}
 Style: ${style}
 
-Use different approaches:
+Use different approaches including:
 - curiosity
 - questions
-- surprising ideas
+- unexpected statements
 - mistakes
 - stories
-- bold openings
+- controversial-but-safe ideas
 - problems
 - solutions
+- challenges
+- surprising facts
 
 Number them 1 through 12.
 
-Keep them short and natural.
+Keep each hook short enough to say naturally.
+
 Do not promise guaranteed views.
 `;
-    }
 
-    // ----------------------------
+    // ====================================
     // IDEAS
-    // ----------------------------
+    // ====================================
 
-    else if (type === "ideas") {
+    } else if (type === "ideas") {
+
       prompt = `
 You are ViralForge Idea Lab.
 
@@ -164,24 +185,26 @@ Create exactly 20 original short-form content ideas.
 Niche: ${niche}
 Platform: ${platform}
 Goal: ${goal}
+Audience: ${audience}
 
 For every idea include:
 
-1. Title
-2. Concept
-3. Hook
-4. Why people may want to watch
+TITLE:
+CONCEPT:
+HOOK:
+WHY IT COULD WORK:
 
-Make every idea different.
+Make every idea substantially different.
+
 Avoid fake statistics and guaranteed-virality claims.
 `;
-    }
 
-    // ----------------------------
-    // CAPTION
-    // ----------------------------
+    // ====================================
+    // CAPTIONS
+    // ====================================
 
-    else if (type === "caption") {
+    } else if (type === "caption") {
+
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -192,24 +215,31 @@ Avoid fake statistics and guaranteed-virality claims.
       prompt = `
 You are ViralForge Caption AI.
 
-Create 5 different captions.
+Create 5 different captions for:
 
 Topic: ${topic}
 Tone: ${tone}
 Platform: ${platform}
+Niche: ${niche}
 
-Make them natural, engaging, and appropriate for short-form content.
+Make them:
+- natural
+- engaging
+- short-form friendly
+- easy to read
+- appropriate for the platform
 
 Number them 1 through 5.
+
 Include a few relevant hashtags with each.
 `;
-    }
 
-    // ----------------------------
+    // ====================================
     // SCORE
-    // ----------------------------
+    // ====================================
 
-    else if (type === "score") {
+    } else if (type === "score") {
+
       if (!text.trim()) {
         return res.status(400).json({
           ok: false,
@@ -226,7 +256,7 @@ Analyze this short-form content:
 ${text}
 """
 
-Give a score from 0-100 based on:
+Score it from 0-100 using:
 
 - Hook strength
 - Curiosity
@@ -236,7 +266,7 @@ Give a score from 0-100 based on:
 - CTA
 - Overall structure
 
-Return your answer EXACTLY like this:
+Return exactly:
 
 SCORE: 0
 
@@ -255,16 +285,16 @@ IMPROVEMENTS:
 
 Do not claim the score predicts actual views.
 `;
-    }
 
-    else {
+    } else {
+
       return res.status(400).json({
         ok: false,
         error: `Unknown AI type: ${type}`
       });
     }
 
-    const result = await askAI(prompt);
+    const result = await askGemini(prompt);
 
     res.json({
       ok: true,
@@ -272,102 +302,103 @@ Do not claim the score predicts actual views.
     });
 
   } catch (error) {
-    console.error("AI ERROR:", error);
+    console.error("GEMINI ERROR:", error);
 
     res.status(500).json({
       ok: false,
-      error: error?.message || "AI request failed."
+      error: error?.message || "Gemini request failed."
     });
   }
 });
 
-// ================================
-// OPTIONAL DIRECT ENDPOINTS
-// ================================
+// ========================================
+// VEO 3.1 VIDEO GENERATION
+// ========================================
 
-app.post("/api/scripts", async (req, res) => {
-  req.body = {
-    ...(req.body || {}),
-    type: "scripts"
-  };
-
-  return app._router
-    ? res.redirect(307, "/api/generate")
-    : res.status(500).json({
+app.post("/api/video", async (req, res) => {
+  try {
+    if (!ai) {
+      return res.status(500).json({
         ok: false,
-        error: "Server routing error."
+        error: "GEMINI_API_KEY is not configured."
       });
+    }
+
+    const {
+      prompt,
+      aspectRatio = "9:16"
+    } = req.body || {};
+
+    if (!prompt || !prompt.trim()) {
+      return res.status(400).json({
+        ok: false,
+        error: "Video prompt is required."
+      });
+    }
+
+    console.log("Starting Veo 3.1 generation...");
+
+    let operation = await ai.models.generateVideos({
+      model: "veo-3.1-generate-preview",
+      prompt: prompt.trim(),
+      config: {
+        aspectRatio
+      }
+    });
+
+    console.log("Veo operation started.");
+
+    // Poll until finished
+    while (!operation.done) {
+      await new Promise(resolve =>
+        setTimeout(resolve, 10000)
+      );
+
+      operation = await ai.operations.getVideosOperation(
+        operation
+      );
+
+      console.log("Checking Veo status...");
+    }
+
+    if (
+      !operation.response ||
+      !operation.response.generatedVideos ||
+      operation.response.generatedVideos.length === 0
+    ) {
+      throw new Error("Veo did not return a generated video.");
+    }
+
+    const generatedVideo =
+      operation.response.generatedVideos[0];
+
+    res.json({
+      ok: true,
+      message: "Video generated successfully.",
+      video: generatedVideo
+    });
+
+  } catch (error) {
+    console.error("VEO ERROR:", error);
+
+    res.status(500).json({
+      ok: false,
+      error: error?.message || "Veo video generation failed."
+    });
+  }
 });
 
-app.post("/api/hooks", async (req, res) => {
-  req.body = {
-    ...(req.body || {}),
-    type: "hooks"
-  };
-
-  return res.redirect(307, "/api/generate");
-});
-
-app.post("/api/ideas", async (req, res) => {
-  req.body = {
-    ...(req.body || {}),
-    type: "ideas"
-  };
-
-  return res.redirect(307, "/api/generate");
-});
-
-app.post("/api/caption", async (req, res) => {
-  req.body = {
-    ...(req.body || {}),
-    type: "caption"
-  };
-
-  return res.redirect(307, "/api/generate");
-});
-
-app.post("/api/score", async (req, res) => {
-  req.body = {
-    ...(req.body || {}),
-    type: "score"
-  };
-
-  return res.redirect(307, "/api/generate");
-});
-
-// ================================
-// 404
-// ================================
-
-app.use((req, res) => {
-  res.status(404).json({
-    ok: false,
-    error: "Endpoint not found."
-  });
-});
-
-// ================================
-// ERROR HANDLER
-// ================================
-
-app.use((err, req, res, next) => {
-  console.error("SERVER ERROR:", err);
-
-  res.status(500).json({
-    ok: false,
-    error: "Internal server error."
-  });
-});
-
-// ================================
-// START
-// ================================
+// ========================================
+// START SERVER
+// ========================================
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("================================");
   console.log("🔥 ViralForge AI Studio");
   console.log("================================");
   console.log(`Port: ${PORT}`);
-  console.log(`OpenAI configured: ${Boolean(apiKey)}`);
+  console.log(
+    `Gemini configured: ${Boolean(GEMINI_API_KEY)}`
+  );
   console.log("Server is running.");
 });
