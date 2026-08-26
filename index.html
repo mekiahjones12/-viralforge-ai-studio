@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -245,8 +246,29 @@ button{cursor:pointer}
   50%{opacity:.45}
 }
 
-.idea{
-  grid-column:span 3;
+.video-box{
+  margin-top:18px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  background:#080a10;
+}
+
+.video-box video{
+  width:100%;
+  max-width:600px;
+  display:block;
+  margin:auto;
+  border-radius:12px;
+  background:#000;
+}
+
+.video-placeholder{
+  min-height:300px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  color:var(--muted);
 }
 
 .history{
@@ -338,7 +360,7 @@ button{cursor:pointer}
     width:calc(100% - 72px);
     padding:15px;
   }
-  .card,.card.wide,.idea{grid-column:1/-1}
+  .card,.card.wide{grid-column:1/-1}
   .form-grid{grid-template-columns:1fr 1fr}
   .hero h2{font-size:34px}
 }
@@ -366,6 +388,7 @@ button{cursor:pointer}
 
 <button class="active" data-page="home">🏠 <span>Dashboard</span></button>
 <button data-page="studio">🎬 <span>Content Studio</span></button>
+<button data-page="video">🎥 <span>AI Video</span></button>
 <button data-page="hooks">🪝 <span>Hook Lab</span></button>
 <button data-page="ideas">💡 <span>Idea Lab</span></button>
 <button data-page="captions">✍️ <span>Captions</span></button>
@@ -381,7 +404,7 @@ button{cursor:pointer}
 
 <header class="topbar">
 <h1 id="pageTitle">Dashboard</h1>
-<div class="status">● AI Connected</div>
+<div class="status">● Gemini Connected</div>
 </header>
 
 
@@ -397,14 +420,17 @@ Make content that
 </h2>
 
 <p class="muted">
-ViralForge is your all-in-one short-form content studio.
-Create scripts, hooks, ideas, captions and scores with AI.
+ViralForge uses Gemini for content creation and Veo for AI video generation.
 </p>
 
 <div class="actions">
 
 <button class="btn primary" onclick="openPage('studio')">
 🚀 Create Content
+</button>
+
+<button class="btn" onclick="openPage('video')">
+🎥 Make AI Video
 </button>
 
 <button class="btn" onclick="surpriseMe()">
@@ -424,21 +450,21 @@ Create scripts, hooks, ideas, captions and scores with AI.
 </div>
 
 <div class="card">
+<h3>🎥 AI Video</h3>
+<p class="muted">Generate vertical videos with Veo.</p>
+<button class="btn" onclick="openPage('video')">Open</button>
+</div>
+
+<div class="card">
 <h3>🪝 Hook Lab</h3>
 <p class="muted">Generate scroll-stopping hooks.</p>
 <button class="btn" onclick="openPage('hooks')">Open</button>
 </div>
 
-<div class="card">
-<h3>💡 Idea Lab</h3>
-<p class="muted">Generate content ideas.</p>
-<button class="btn" onclick="openPage('ideas')">Open</button>
-</div>
-
 <div class="card wide">
 <h3>🚀 Creator Workflow</h3>
 <p class="muted">
-Idea → Hook → Script → Caption → Score → Save
+Idea → Hook → Script → Video → Caption → Score → Save
 </p>
 </div>
 
@@ -536,6 +562,88 @@ Tell ViralForge what you want to make.
 </section>
 
 
+<!-- VIDEO -->
+
+<section id="video" class="page">
+
+<div class="panel">
+
+<h2>🎥 Veo 3.1 AI Video Generator</h2>
+
+<p class="muted">
+Describe the video you want. Veo will generate the video through your ViralForge backend.
+</p>
+
+<div class="field">
+
+<label>VIDEO PROMPT</label>
+
+<textarea
+id="videoPrompt"
+placeholder="Example: A cinematic basketball training scene in an empty gym, dramatic lighting, energetic camera movement, realistic style..."
+></textarea>
+
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+
+<label>FORMAT</label>
+
+<select id="videoAspect">
+
+<option value="9:16">9:16 — YouTube Shorts / TikTok</option>
+<option value="16:9">16:9 — Landscape</option>
+
+</select>
+
+</div>
+
+</div>
+
+<div class="actions">
+
+<button
+class="btn primary"
+id="generateVideoButton"
+onclick="generateVideo()">
+
+🎥 Generate AI Video
+
+</button>
+
+<button
+class="btn"
+onclick="useScriptForVideo()">
+
+📝 Use My Script
+
+</button>
+
+</div>
+
+<div id="videoStatus" class="result">
+
+Your generated video will appear here.
+
+</div>
+
+<div id="videoOutput" class="video-box">
+
+<div class="video-placeholder">
+
+🎬 No video generated yet.
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
 <!-- HOOKS -->
 
 <section id="hooks" class="page">
@@ -545,7 +653,7 @@ Tell ViralForge what you want to make.
 <h2>🪝 Hook Lab</h2>
 
 <p class="muted">
-Generate 12 different hooks with AI.
+Generate 12 different hooks with Gemini.
 </p>
 
 <div class="form-grid">
@@ -608,7 +716,7 @@ Your hooks will appear here.
 <h2>💡 Idea Lab</h2>
 
 <p class="muted">
-Generate 20 different content concepts with AI.
+Generate 20 different content concepts with Gemini.
 </p>
 
 <div class="form-grid">
@@ -684,6 +792,7 @@ Generate 20 different content concepts with AI.
 <option>Instagram</option>
 <option>YouTube</option>
 </select>
+
 </div>
 
 </div>
@@ -729,7 +838,10 @@ This checks writing quality. It cannot guarantee views.
 
 <label>CONTENT</label>
 
-<textarea id="scoreText" placeholder="Paste your script, hook or caption here..."></textarea>
+<textarea
+id="scoreText"
+placeholder="Paste your script, hook or caption here..."
+></textarea>
 
 </div>
 
@@ -742,9 +854,11 @@ This checks writing quality. It cannot guarantee views.
 <div id="scoreNumber" class="score-number">--</div>
 
 <div style="flex:1">
+
 <div class="bar">
 <i id="scoreBar"></i>
 </div>
+
 </div>
 
 </div>
@@ -769,8 +883,13 @@ Your analysis will appear here.
 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
 
 <div>
+
 <h2>💾 Saved Content</h2>
-<p class="muted">Saved locally in this browser.</p>
+
+<p class="muted">
+Saved locally in this browser.
+</p>
+
 </div>
 
 <button class="btn danger" onclick="clearSaved()">
@@ -824,7 +943,7 @@ Reset
 
 <br><br>
 
-Connected through the ViralForge backend.
+Gemini + Veo 3.1 connected through the ViralForge backend.
 
 </div>
 
@@ -873,6 +992,7 @@ const niches=[
 const pageNames={
 home:"Dashboard",
 studio:"Content Studio",
+video:"AI Video",
 hooks:"Hook Lab",
 ideas:"Idea Lab",
 captions:"Captions",
@@ -883,7 +1003,7 @@ settings:"Settings"
 
 
 /* =========================================
-   INITIALIZE DROPDOWNS
+   INITIALIZE
 ========================================= */
 
 ["niche","hookNiche","ideaNiche","defaultNiche"].forEach(id=>{
@@ -999,11 +1119,9 @@ const response=await fetch(
 API_URL+"/api/generate",
 {
 method:"POST",
-
 headers:{
 "Content-Type":"application/json"
 },
-
 body:JSON.stringify(data)
 }
 );
@@ -1027,6 +1145,215 @@ throw new Error("No AI result was returned.");
 }
 
 return result.result;
+
+}
+
+
+/* =========================================
+   VIDEO REQUEST
+========================================= */
+
+async function requestVideo(prompt,aspectRatio){
+
+const response=await fetch(
+API_URL+"/api/video",
+{
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+prompt,
+aspectRatio
+})
+}
+);
+
+let result;
+
+try{
+result=await response.json();
+}catch{
+throw new Error("Video server returned an invalid response.");
+}
+
+if(!response.ok){
+throw new Error(
+result.error || "Video generation failed."
+);
+}
+
+return result;
+
+}
+
+
+/* =========================================
+   VIDEO GENERATOR
+========================================= */
+
+async function generateVideo(){
+
+const prompt=
+document.getElementById("videoPrompt").value.trim();
+
+const aspectRatio=
+document.getElementById("videoAspect").value;
+
+const status=
+document.getElementById("videoStatus");
+
+const output=
+document.getElementById("videoOutput");
+
+const button=
+document.getElementById("generateVideoButton");
+
+if(!prompt){
+
+toast("Enter a video prompt first!");
+
+return;
+
+}
+
+button.disabled=true;
+
+button.textContent=
+"⏳ Generating Video...";
+
+status.className="result loading";
+
+status.innerText=
+"🎥 Veo 3.1 is generating your video. This can take a few minutes. Keep this page open.";
+
+output.innerHTML=`
+<div class="video-placeholder">
+⏳ Generating your AI video...
+</div>
+`;
+
+try{
+
+const result=
+await requestVideo(
+prompt,
+aspectRatio
+);
+
+const video=
+result.video;
+
+const videoUri=
+video?.video?.uri ||
+video?.uri ||
+"";
+
+if(!videoUri){
+
+throw new Error(
+"Veo completed but no playable video URL was returned."
+);
+
+}
+
+status.className="result";
+
+status.innerText=
+"✅ Video generated successfully!";
+
+output.innerHTML=`
+
+<video
+controls
+playsinline
+src="${escapeAttribute(videoUri)}">
+</video>
+
+<div class="actions" style="margin-top:12px">
+
+<button
+class="btn"
+onclick='copyText(${JSON.stringify(videoUri)})'>
+📋 Copy Video URL
+</button>
+
+<button
+class="btn good"
+onclick='saveContent("AI Video",${JSON.stringify(videoUri)})'>
+💾 Save Video URL
+</button>
+
+</div>
+`;
+
+toast("🎥 Video generated!");
+
+}catch(error){
+
+status.className="result";
+
+status.innerText=
+"❌ Video generation failed:\n\n"+
+error.message;
+
+output.innerHTML=`
+<div class="video-placeholder">
+❌ Video could not be generated.
+</div>
+`;
+
+toast("Video generation failed");
+
+}finally{
+
+button.disabled=false;
+
+button.textContent=
+"🎥 Generate AI Video";
+
+}
+
+}
+
+
+/* =========================================
+   USE SCRIPT FOR VIDEO
+========================================= */
+
+function useScriptForVideo(){
+
+const script=
+document.querySelector("#scripts .result");
+
+if(!script){
+
+toast("Generate a script first!");
+
+return;
+
+}
+
+const text=
+script.innerText.trim();
+
+if(!text){
+
+toast("Generate a script first!");
+
+return;
+
+}
+
+document.getElementById("videoPrompt").value=
+"Create a vertical short-form video based on this script. Use realistic visuals, dynamic camera movement, clear storytelling, and natural pacing. Do not display the script as on-screen text unless appropriate.\n\nSCRIPT:\n"+
+text;
+
+openPage("video");
+
+toast("Script added to video prompt!");
 
 }
 
@@ -1065,7 +1392,7 @@ document.getElementById("scripts");
 
 output.innerHTML=`
 <div class="result loading">
-🤖 ViralForge AI is creating your content...
+🤖 Gemini is creating your content...
 </div>
 `;
 
@@ -1079,8 +1406,7 @@ niche,
 platform,
 style,
 length,
-audience,
-count:3
+audience
 
 });
 
@@ -1107,7 +1433,7 @@ onclick='document.getElementById("scoreText").value=${JSON.stringify(result)};op
 </div>
 `;
 
-toast("🔥 AI content generated!");
+toast("🔥 Gemini content generated!");
 
 }catch(error){
 
@@ -1117,8 +1443,6 @@ output.innerHTML=`
 
 ${escapeHTML(error.message)}
 
-<br><br>
-Make sure your Render backend is running and your OpenAI key is configured.
 </div>
 `;
 
@@ -1153,7 +1477,7 @@ const output=
 document.getElementById("hookOutput");
 
 output.innerText=
-"🤖 Creating 12 hooks...";
+"🤖 Gemini is creating 12 hooks...";
 
 try{
 
@@ -1163,14 +1487,13 @@ type:"hooks",
 topic,
 niche,
 style,
-platform:"Short-form video",
-count:12
+platform:"Short-form video"
 
 });
 
 output.innerText=result;
 
-toast("🪝 12 AI hooks generated!");
+toast("🪝 12 hooks generated!");
 
 }catch(error){
 
@@ -1180,27 +1503,6 @@ output.innerText=
 toast("Hook generation failed");
 
 }
-
-}
-
-
-function randomHook(){
-
-const topics=[
-"growing on YouTube",
-"getting better at basketball",
-"learning faster",
-"starting a gaming channel",
-"saving money",
-"making better videos",
-"staying consistent",
-"getting more views"
-];
-
-document.getElementById("hookTopic").value=
-topics[Math.floor(Math.random()*topics.length)];
-
-generateHooks();
 
 }
 
@@ -1225,7 +1527,7 @@ document.getElementById("ideaOutput");
 
 output.innerHTML=`
 <div class="result loading" style="grid-column:1/-1">
-🤖 Creating 20 ideas...
+🤖 Gemini is creating 20 ideas...
 </div>
 `;
 
@@ -1236,8 +1538,7 @@ const result=await askAI({
 type:"ideas",
 niche,
 platform,
-goal,
-count:20
+goal
 
 });
 
@@ -1247,7 +1548,7 @@ ${escapeHTML(result)}
 </div>
 `;
 
-toast("💡 20 AI ideas generated!");
+toast("💡 20 ideas generated!");
 
 }catch(error){
 
@@ -1288,7 +1589,7 @@ const output=
 document.getElementById("captionOutput");
 
 output.innerText=
-"🤖 Creating caption...";
+"🤖 Gemini is creating captions...";
 
 try{
 
@@ -1345,7 +1646,7 @@ number.innerText="...";
 bar.style.width="0%";
 
 output.innerText=
-"🤖 Analyzing your content...";
+"🤖 Gemini is analyzing your content...";
 
 try{
 
@@ -1358,7 +1659,8 @@ text
 
 output.innerText=result;
 
-const match=result.match(/SCORE:\s*(\d+)/i);
+const match=
+result.match(/SCORE:\s*(\d+)/i);
 
 if(match){
 
@@ -1367,332 +1669,34 @@ Math.min(100,Math.max(0,Number(match[1])));
 
 number.innerText=score;
 
-bar.style.width=score+"%";
+bar.style.width=
+score+"%";
 
 document.getElementById("scoreStats").innerHTML=`
+
 <div class="stat">
 <b>${score}</b>
 <span>AI Score</span>
 </div>
+
 <div class="stat">
 <b>AI</b>
 <span>Analysis</span>
 </div>
+
 <div class="stat">
 <b>✓</b>
 <span>Reviewed</span>
 </div>
+
 <div class="stat">
 <b>100</b>
 <span>Maximum</span>
 </div>
+
 `;
 
 }
 
-toast("📊 Content analyzed!");
-
-}catch(error){
-
-number.innerText="--";
-
-output.innerText=
-"❌ "+error.message;
-
-toast("Score failed");
-
-}
-
-}
-
-
-/* =========================================
-   SAVED CONTENT
-========================================= */
-
-function saveContent(type,text){
-
-if(!text)return;
-
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
-
-saved.unshift({
-
-type,
-text,
-date:new Date().toLocaleString()
-
-});
-
-localStorage.setItem(
-"viralforgeSaved",
-JSON.stringify(saved.slice(0,100))
-);
-
-toast("💾 Saved!");
-
-}
-
-
-function saveCurrent(type,id){
-
-const element=
-document.getElementById(id);
-
-if(element){
-
-saveContent(
-type,
-element.innerText
-);
-
-}
-
-}
-
-
-function renderSaved(){
-
-const output=
-document.getElementById("savedOutput");
-
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
-
-if(!saved.length){
-
-output.innerHTML=
-`<div class="result">
-Nothing saved yet.
-</div>`;
-
-return;
-
-}
-
-output.innerHTML=
-saved.map((item,index)=>`
-
-<div class="history-item">
-
-<div>
-
-<b>${escapeHTML(item.type)}</b>
-
-<br>
-
-<small class="muted">
-${escapeHTML(item.date)}
-</small>
-
-<p class="muted">
-${escapeHTML(
-item.text.substring(0,250)
-)}
-${item.text.length>250?"...":""}
-</p>
-
-</div>
-
-<div class="actions">
-
-<button class="btn"
-onclick="copySaved(${index})">
-Copy
-</button>
-
-<button class="btn danger"
-onclick="deleteSaved(${index})">
-Delete
-</button>
-
-</div>
-
-</div>
-
-`).join("");
-
-}
-
-
-function copySaved(index){
-
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
-
-copyText(saved[index].text);
-
-}
-
-
-function deleteSaved(index){
-
-const saved=
-JSON.parse(
-localStorage.getItem("viralforgeSaved")||"[]"
-);
-
-saved.splice(index,1);
-
-localStorage.setItem(
-"viralforgeSaved",
-JSON.stringify(saved)
-);
-
-renderSaved();
-
-toast("Deleted");
-
-}
-
-
-function clearSaved(){
-
-if(!confirm("Delete all saved content?")){
-return;
-}
-
-localStorage.removeItem("viralforgeSaved");
-
-renderSaved();
-
-toast("All saved content cleared");
-
-}
-
-
-/* =========================================
-   RANDOM TOPIC
-========================================= */
-
-function surpriseMe(){
-
-const topics=[
-"3 mistakes beginners make in gaming",
-"how to get better at basketball",
-"a study trick that actually helps",
-"what I learned after failing",
-"3 useful phone features",
-"how I would start a channel from zero",
-"a simple money habit",
-"how to make better short videos",
-"the biggest creator mistake",
-"something nobody tells beginners"
-];
-
-const topic=
-topics[Math.floor(Math.random()*topics.length)];
-
-document.getElementById("topic").value=topic;
-
-openPage("studio");
-
-toast("🎲 Random idea loaded");
-
-}
-
-
-/* =========================================
-   SETTINGS
-========================================= */
-
-function saveSettings(){
-
-localStorage.setItem(
-"viralforgeDefaultNiche",
-document.getElementById("defaultNiche").value
-);
-
-toast("Settings saved");
-
-}
-
-
-function resetSettings(){
-
-localStorage.removeItem(
-"viralforgeDefaultNiche"
-);
-
-document.getElementById("defaultNiche").value=
-"General";
-
-toast("Settings reset");
-
-}
-
-
-/* =========================================
-   HTML SAFETY
-========================================= */
-
-function escapeHTML(text){
-
-return String(text)
-
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
-
-}
-
-
-/* =========================================
-   LOAD SETTINGS
-========================================= */
-
-const savedNiche=
-localStorage.getItem(
-"viralforgeDefaultNiche"
-);
-
-if(savedNiche){
-
-document.getElementById(
-"defaultNiche"
-).value=savedNiche;
-
-}
-
-
-/* =========================================
-   KEYBOARD SHORTCUT
-========================================= */
-
-document.addEventListener("keydown",event=>{
-
-if(
-(event.ctrlKey||event.metaKey)&&
-event.key.toLowerCase()==="k"
-){
-
-event.preventDefault();
-
-openPage("studio");
-
-document.getElementById("topic").focus();
-
-}
-
-});
-
-
-/* =========================================
-   START
-========================================= */
-
-renderSaved();
-
-</script>
-
-</body>
-</html>
+toast("📊 Content analyzed
+```
