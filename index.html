@@ -1,689 +1,1698 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViralForge AI Studio</title>
 
-const API_URL =
-  "https://viralforge-backend-nl1f.onrender.com";
-
-
-/* =========================
-   NAVIGATION
-========================= */
-
-const pageNames = {
-  home: "Dashboard",
-  studio: "Content Studio",
-  hooks: "Hook Lab",
-  ideas: "Idea Lab",
-  captions: "Captions",
-  score: "Viral Score",
-  saved: "Saved Content",
-  settings: "Settings"
-};
-
-function openPage(id) {
-
-  document.querySelectorAll(".page").forEach(p => {
-    p.classList.remove("active");
-  });
-
-  const page = document.getElementById(id);
-
-  if (page) {
-    page.classList.add("active");
-  }
-
-  document.querySelectorAll(".nav button").forEach(btn => {
-    btn.classList.toggle(
-      "active",
-      btn.dataset.page === id
-    );
-  });
-
-  document.getElementById("pageTitle").textContent =
-    pageNames[id] || id;
-
-  if (id === "saved") {
-    renderSaved();
-  }
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+<style>
+:root{
+  --bg:#07080d;
+  --panel:#10131d;
+  --panel2:#151a27;
+  --line:#2a3040;
+  --text:#f7f8ff;
+  --muted:#98a0b5;
+  --purple:#8b5cf6;
+  --pink:#ec4899;
+  --green:#22c55e;
 }
 
+*{box-sizing:border-box}
 
-document.querySelectorAll(".nav button").forEach(btn => {
+body{
+  margin:0;
+  background:radial-gradient(circle at 70% -10%,#4c2478 0,#07080d 35%);
+  color:var(--text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
 
-  btn.onclick = () => {
-    openPage(btn.dataset.page);
-  };
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+
+.app{min-height:100vh;display:flex}
+
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:245px;
+  padding:18px 14px;
+  background:#090b11ee;
+  border-right:1px solid var(--line);
+  z-index:10;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:20px;
+  font-weight:900;
+  margin:6px 8px 25px;
+}
+
+.logo{
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+}
+
+.nav{display:grid;gap:6px}
+
+.nav button{
+  width:100%;
+  border:1px solid transparent;
+  background:transparent;
+  color:#aeb5c7;
+  padding:12px;
+  border-radius:11px;
+  text-align:left;
+}
+
+.nav button:hover,
+.nav button.active{
+  background:#171b27;
+  color:#fff;
+  border-color:#303649;
+}
+
+.main{
+  margin-left:245px;
+  width:calc(100% - 245px);
+  padding:25px;
+  max-width:1600px;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.topbar h1{margin:0;font-size:28px}
+
+.status{
+  padding:7px 12px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:#0d1018;
+  color:#bfc6d8;
+}
+
+.page{display:none}
+.page.active{display:block}
+
+.hero,.panel{
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:linear-gradient(180deg,#131722,#0d1017);
+  padding:24px;
+  box-shadow:0 18px 55px #0006;
+}
+
+.hero{margin-bottom:15px}
+
+.hero h2{
+  font-size:44px;
+  line-height:1.05;
+  margin:0 0 12px;
+}
+
+.gradient{
+  background:linear-gradient(90deg,#a78bfa,#f472b6);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.muted{
+  color:var(--muted);
+  line-height:1.55;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:14px;
+}
+
+.card{
+  grid-column:span 4;
+  padding:18px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#0d1017;
+}
+
+.card.wide{grid-column:span 8}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr;
+  gap:12px;
+}
+
+.field{
+  display:grid;
+  gap:6px;
+  margin-bottom:12px;
+}
+
+.field label{
+  color:#bdc4d5;
+  font-size:12px;
+  font-weight:700;
+}
+
+.field input,
+.field select,
+.field textarea{
+  width:100%;
+  background:#090b11;
+  color:white;
+  border:1px solid #2c3243;
+  border-radius:10px;
+  padding:11px;
+  outline:none;
+}
+
+.field textarea{
+  min-height:180px;
+  resize:vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+  border-color:var(--purple);
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid #353b4d;
+  background:#171b26;
+  color:white;
+}
+
+.btn:hover{
+  filter:brightness(1.12);
+}
+
+.primary{
+  border:0;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  font-weight:800;
+}
+
+.good{
+  border-color:#23623c;
+  color:#b9f6c9;
+}
+
+.danger{
+  border-color:#672b32;
+  color:#ffb2ba;
+}
+
+.result{
+  white-space:pre-wrap;
+  line-height:1.65;
+  background:#080a10;
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:16px;
+  margin-top:13px;
+}
+
+.loading{
+  animation:pulse 1.3s infinite;
+}
+
+@keyframes pulse{
+  50%{opacity:.45}
+}
+
+.idea{
+  grid-column:span 3;
+}
+
+.history{
+  display:grid;
+  gap:9px;
+}
+
+.history-item{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  border:1px solid var(--line);
+  background:#0b0e14;
+  border-radius:12px;
+  padding:13px;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:9px;
+  margin-top:13px;
+}
+
+.stat{
+  padding:13px;
+  border:1px solid var(--line);
+  background:#0a0d13;
+  border-radius:11px;
+}
+
+.stat b{
+  font-size:21px;
+  display:block;
+}
+
+.stat span{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.score-number{
+  font-size:50px;
+  font-weight:900;
+}
+
+.bar{
+  height:10px;
+  border-radius:999px;
+  background:#252a38;
+  overflow:hidden;
+  margin-top:12px;
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,#f59e0b,#22c55e);
+  transition:.4s;
+}
+
+#toast{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  background:#191d29;
+  border:1px solid #3b4255;
+  border-radius:11px;
+  padding:11px 14px;
+  opacity:0;
+  transform:translateY(8px);
+  transition:.2s;
+  z-index:50;
+}
+
+#toast.show{
+  opacity:1;
+  transform:none;
+}
+
+@media(max-width:900px){
+  .sidebar{width:72px}
+  .brand span,.nav button span{display:none}
+  .brand{justify-content:center}
+  .main{
+    margin-left:72px;
+    width:calc(100% - 72px);
+    padding:15px;
+  }
+  .card,.card.wide,.idea{grid-column:1/-1}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .hero h2{font-size:34px}
+}
+
+@media(max-width:600px){
+  .form-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .hero h2{font-size:29px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+
+<div class="brand">
+  <div class="logo">⚡</div>
+  <span>ViralForge</span>
+</div>
+
+<div class="nav">
+
+<button class="active" data-page="home">🏠 <span>Dashboard</span></button>
+<button data-page="studio">🎬 <span>Content Studio</span></button>
+<button data-page="hooks">🪝 <span>Hook Lab</span></button>
+<button data-page="ideas">💡 <span>Idea Lab</span></button>
+<button data-page="captions">✍️ <span>Captions</span></button>
+<button data-page="score">📊 <span>Viral Score</span></button>
+<button data-page="saved">💾 <span>Saved</span></button>
+<button data-page="settings">⚙️ <span>Settings</span></button>
+
+</div>
+
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+<h1 id="pageTitle">Dashboard</h1>
+<div class="status">● AI Connected</div>
+</header>
+
+
+<!-- HOME -->
+
+<section id="home" class="page active">
+
+<div class="hero">
+
+<h2>
+Make content that
+<span class="gradient">earns the next second.</span>
+</h2>
+
+<p class="muted">
+ViralForge is your all-in-one short-form content studio.
+Create scripts, hooks, ideas, captions and scores with AI.
+</p>
+
+<div class="actions">
+
+<button class="btn primary" onclick="openPage('studio')">
+🚀 Create Content
+</button>
+
+<button class="btn" onclick="surpriseMe()">
+🎲 Surprise Me
+</button>
+
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+<h3>🎬 Content Studio</h3>
+<p class="muted">Generate AI short-form scripts.</p>
+<button class="btn" onclick="openPage('studio')">Open</button>
+</div>
+
+<div class="card">
+<h3>🪝 Hook Lab</h3>
+<p class="muted">Generate scroll-stopping hooks.</p>
+<button class="btn" onclick="openPage('hooks')">Open</button>
+</div>
+
+<div class="card">
+<h3>💡 Idea Lab</h3>
+<p class="muted">Generate content ideas.</p>
+<button class="btn" onclick="openPage('ideas')">Open</button>
+</div>
+
+<div class="card wide">
+<h3>🚀 Creator Workflow</h3>
+<p class="muted">
+Idea → Hook → Script → Caption → Score → Save
+</p>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- STUDIO -->
+
+<section id="studio" class="page">
+
+<div class="panel">
+
+<h2>🎬 AI Content Studio</h2>
+
+<p class="muted">
+Tell ViralForge what you want to make.
+</p>
+
+<div class="form-grid">
+
+<div class="field">
+<label>TOPIC</label>
+<input id="topic" placeholder="Example: how to get better at basketball">
+</div>
+
+<div class="field">
+<label>NICHE</label>
+<select id="niche"></select>
+</div>
+
+<div class="field">
+<label>PLATFORM</label>
+<select id="platform">
+<option>TikTok</option>
+<option>YouTube Shorts</option>
+<option>Instagram Reels</option>
+</select>
+</div>
+
+<div class="field">
+<label>STYLE</label>
+<select id="style">
+<option>High Energy</option>
+<option>Storytelling</option>
+<option>Educational</option>
+<option>Funny</option>
+<option>Serious</option>
+<option>Bold</option>
+<option>Motivational</option>
+</select>
+</div>
+
+<div class="field">
+<label>LENGTH</label>
+<select id="length">
+<option>30 seconds</option>
+<option>45 seconds</option>
+<option>60 seconds</option>
+</select>
+</div>
+
+<div class="field">
+<label>AUDIENCE</label>
+<select id="audience">
+<option>Beginners</option>
+<option>Teens</option>
+<option>Creators</option>
+<option>Fans</option>
+<option>Everyone</option>
+</select>
+</div>
+
+</div>
+
+<div class="actions">
+
+<button class="btn primary" onclick="generateScripts()">
+🔥 Generate AI Content
+</button>
+
+<button class="btn" onclick="surpriseMe()">
+🎲 Random
+</button>
+
+</div>
+
+<div id="scripts">
+<div class="result">Your AI content will appear here.</div>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- HOOKS -->
+
+<section id="hooks" class="page">
+
+<div class="panel">
+
+<h2>🪝 Hook Lab</h2>
+
+<p class="muted">
+Generate 12 different hooks with AI.
+</p>
+
+<div class="form-grid">
+
+<div class="field">
+<label>TOPIC</label>
+<input id="hookTopic" placeholder="Example: growing on YouTube">
+</div>
+
+<div class="field">
+<label>NICHE</label>
+<select id="hookNiche"></select>
+</div>
+
+<div class="field">
+<label>HOOK STYLE</label>
+<select id="hookStyle">
+<option>Mixed</option>
+<option>Curiosity</option>
+<option>Story</option>
+<option>Bold</option>
+<option>Educational</option>
+<option>Question</option>
+</select>
+</div>
+
+</div>
+
+<button class="btn primary" onclick="generateHooks()">
+🪝 Generate 12
+</button>
+
+<div id="hookOutput" class="result">
+Your hooks will appear here.
+</div>
+
+<div class="actions">
+
+<button class="btn" onclick="copyElement('hookOutput')">
+📋 Copy
+</button>
+
+<button class="btn good" onclick="saveCurrent('Hooks','hookOutput')">
+💾 Save
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- IDEAS -->
+
+<section id="ideas" class="page">
+
+<div class="panel">
+
+<h2>💡 Idea Lab</h2>
+
+<p class="muted">
+Generate 20 different content concepts with AI.
+</p>
+
+<div class="form-grid">
+
+<div class="field">
+<label>NICHE</label>
+<select id="ideaNiche"></select>
+</div>
+
+<div class="field">
+<label>PLATFORM</label>
+<select id="ideaPlatform">
+<option>TikTok</option>
+<option>YouTube Shorts</option>
+<option>Instagram Reels</option>
+</select>
+</div>
+
+<div class="field">
+<label>GOAL</label>
+<select id="ideaGoal">
+<option>Growth</option>
+<option>Education</option>
+<option>Entertainment</option>
+<option>Community</option>
+<option>Authority</option>
+</select>
+</div>
+
+</div>
+
+<button class="btn primary" onclick="generateIdeas()">
+💡 Generate 20 Ideas
+</button>
+
+<div id="ideaOutput" class="grid" style="margin-top:15px"></div>
+
+</div>
+
+</section>
+
+
+<!-- CAPTIONS -->
+
+<section id="captions" class="page">
+
+<div class="panel">
+
+<h2>✍️ Caption Maker</h2>
+
+<div class="form-grid">
+
+<div class="field">
+<label>TOPIC</label>
+<input id="captionTopic" placeholder="Example: my first viral video">
+</div>
+
+<div class="field">
+<label>TONE</label>
+<select id="captionTone">
+<option>Confident</option>
+<option>Funny</option>
+<option>Curious</option>
+<option>Motivational</option>
+<option>Storytelling</option>
+</select>
+</div>
+
+<div class="field">
+<label>PLATFORM</label>
+<select id="captionPlatform">
+<option>TikTok</option>
+<option>Instagram</option>
+<option>YouTube</option>
+</select>
+</div>
+
+</div>
+
+<button class="btn primary" onclick="generateCaption()">
+✍️ Generate Caption
+</button>
+
+<div id="captionOutput" class="result">
+Your caption will appear here.
+</div>
+
+<div class="actions">
+
+<button class="btn" onclick="copyElement('captionOutput')">
+📋 Copy
+</button>
+
+<button class="btn good" onclick="saveCurrent('Caption','captionOutput')">
+💾 Save
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- SCORE -->
+
+<section id="score" class="page">
+
+<div class="panel">
+
+<h2>📊 Viral Score</h2>
+
+<p class="muted">
+This checks writing quality. It cannot guarantee views.
+</p>
+
+<div class="field">
+
+<label>CONTENT</label>
+
+<textarea id="scoreText" placeholder="Paste your script, hook or caption here..."></textarea>
+
+</div>
+
+<button class="btn primary" onclick="analyzeScore()">
+📊 Analyze
+</button>
+
+<div style="display:flex;align-items:center;gap:20px;margin-top:18px;">
+
+<div id="scoreNumber" class="score-number">--</div>
+
+<div style="flex:1">
+<div class="bar">
+<i id="scoreBar"></i>
+</div>
+</div>
+
+</div>
+
+<div id="scoreOutput" class="result">
+Your analysis will appear here.
+</div>
+
+<div id="scoreStats" class="stats"></div>
+
+</div>
+
+</section>
+
+
+<!-- SAVED -->
+
+<section id="saved" class="page">
+
+<div class="panel">
+
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+
+<div>
+<h2>💾 Saved Content</h2>
+<p class="muted">Saved locally in this browser.</p>
+</div>
+
+<button class="btn danger" onclick="clearSaved()">
+Clear All
+</button>
+
+</div>
+
+<div id="savedOutput" class="history"></div>
+
+</div>
+
+</section>
+
+
+<!-- SETTINGS -->
+
+<section id="settings" class="page">
+
+<div class="panel">
+
+<h2>⚙️ Settings</h2>
+
+<p class="muted">
+Customize your ViralForge experience.
+</p>
+
+<div class="field">
+
+<label>DEFAULT NICHE</label>
+
+<select id="defaultNiche"></select>
+
+</div>
+
+<div class="actions">
+
+<button class="btn primary" onclick="saveSettings()">
+Save Settings
+</button>
+
+<button class="btn danger" onclick="resetSettings()">
+Reset
+</button>
+
+</div>
+
+<div class="result">
+
+<b>AI Backend</b>
+
+<br><br>
+
+Connected through the ViralForge backend.
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+</div>
+
+<div id="toast"></div>
+
+
+<script>
+
+/* =========================================
+   BACKEND
+========================================= */
+
+const API_URL =
+"https://viralforge-backend-nl1f.onrender.com";
+
+
+/* =========================================
+   DATA
+========================================= */
+
+const niches=[
+"General",
+"Gaming",
+"Sports",
+"Education",
+"Fitness",
+"Storytime",
+"Money",
+"Tech",
+"Entertainment",
+"Motivation",
+"Creators",
+"Beauty",
+"Food",
+"Travel",
+"Music"
+];
+
+const pageNames={
+home:"Dashboard",
+studio:"Content Studio",
+hooks:"Hook Lab",
+ideas:"Idea Lab",
+captions:"Captions",
+score:"Viral Score",
+saved:"Saved Content",
+settings:"Settings"
+};
+
+
+/* =========================================
+   INITIALIZE DROPDOWNS
+========================================= */
+
+["niche","hookNiche","ideaNiche","defaultNiche"].forEach(id=>{
+
+const select=document.getElementById(id);
+
+niches.forEach(n=>{
+select.add(new Option(n,n));
+});
 
 });
 
 
-/* =========================
+/* =========================================
+   NAVIGATION
+========================================= */
+
+function openPage(id){
+
+document.querySelectorAll(".page").forEach(page=>{
+page.classList.remove("active");
+});
+
+document.getElementById(id).classList.add("active");
+
+document.querySelectorAll(".nav button").forEach(button=>{
+button.classList.toggle(
+"active",
+button.dataset.page===id
+);
+});
+
+document.getElementById("pageTitle").textContent=
+pageNames[id];
+
+if(id==="saved"){
+renderSaved();
+}
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+
+document.querySelectorAll(".nav button").forEach(button=>{
+
+button.onclick=()=>{
+openPage(button.dataset.page);
+};
+
+});
+
+
+/* =========================================
    TOAST
-========================= */
+========================================= */
 
-function toast(message) {
+function toast(message){
 
-  const box = document.getElementById("toast");
+const box=document.getElementById("toast");
 
-  if (!box) return;
+box.textContent=message;
 
-  box.textContent = message;
-  box.classList.add("show");
+box.classList.add("show");
 
-  setTimeout(() => {
-    box.classList.remove("show");
-  }, 2200);
+setTimeout(()=>{
+box.classList.remove("show");
+},2000);
+
 }
 
 
-/* =========================
-   AI REQUEST
-========================= */
-
-async function ai(type, data = {}) {
-
-  toast("AI is working...");
-
-  try {
-
-    const response = await fetch(
-      `${API_URL}/api/generate`,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          type,
-          ...data
-        })
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.ok) {
-      throw new Error(
-        result.error || "AI request failed."
-      );
-    }
-
-    return result.result;
-
-  } catch (error) {
-
-    console.error(error);
-
-    toast("AI error");
-
-    throw error;
-  }
-}
-
-
-/* =========================
-   SCRIPTS
-========================= */
-
-async function generateScripts() {
-
-  const topic =
-    document.getElementById("topic").value.trim();
-
-  if (!topic) {
-    toast("Enter a topic first.");
-    return;
-  }
-
-  try {
-
-    const result = await ai("scripts", {
-
-      topic,
-
-      niche:
-        document.getElementById("niche").value,
-
-      platform:
-        document.getElementById("platform").value,
-
-      style:
-        document.getElementById("style").value,
-
-      length:
-        document.getElementById("length").value,
-
-      audience:
-        document.getElementById("audience").value
-
-    });
-
-    const output =
-      document.getElementById("scripts");
-
-    output.innerHTML = "";
-
-    const box =
-      document.createElement("div");
-
-    box.className = "result";
-
-    box.textContent = result;
-
-    output.appendChild(box);
-
-    const actions =
-      document.createElement("div");
-
-    actions.className = "actions";
-
-    actions.innerHTML = `
-      <button class="btn" id="copyScripts">
-        📋 Copy
-      </button>
-
-      <button class="btn good" id="saveScripts">
-        💾 Save
-      </button>
-
-      <button class="btn" id="scoreScripts">
-        📊 Score
-      </button>
-    `;
-
-    output.appendChild(actions);
-
-    document
-      .getElementById("copyScripts")
-      .onclick = () => copyText(result);
-
-    document
-      .getElementById("saveScripts")
-      .onclick = () =>
-        saveContent("AI Scripts", result);
-
-    document
-      .getElementById("scoreScripts")
-      .onclick = () => {
-
-        document.getElementById("scoreText")
-          .value = result;
-
-        openPage("score");
-      };
-
-    toast("AI scripts generated!");
-
-  } catch {
-    document.getElementById("scripts").innerHTML =
-      `<div class="result">
-        AI generation failed. Check your Render backend.
-      </div>`;
-  }
-}
-
-
-/* =========================
-   HOOKS
-========================= */
-
-async function generateHooks() {
-
-  const topic =
-    document.getElementById("hookTopic")
-      .value.trim();
-
-  if (!topic) {
-    toast("Enter a topic first.");
-    return;
-  }
-
-  try {
-
-    const result = await ai("hooks", {
-
-      topic,
-
-      niche:
-        document.getElementById("hookNiche").value,
-
-      platform:
-        "Short-form",
-
-      style:
-        document.getElementById("hookStyle").value
-
-    });
-
-    document.getElementById("hookOutput")
-      .innerText = result;
-
-    toast("AI hooks generated!");
-
-  } catch {
-
-    document.getElementById("hookOutput")
-      .innerText =
-      "AI generation failed.";
-
-  }
-}
-
-
-/* =========================
-   IDEAS
-========================= */
-
-async function generateIdeas() {
-
-  try {
-
-    const result = await ai("ideas", {
-
-      niche:
-        document.getElementById("ideaNiche").value,
-
-      platform:
-        document.getElementById("ideaPlatform").value,
-
-      goal:
-        document.getElementById("ideaGoal").value
-
-    });
-
-    document.getElementById("ideaOutput")
-      .innerHTML = `
-        <div class="card full">
-          <div class="result">${escapeHTML(result)}</div>
-
-          <div class="actions">
-            <button class="btn"
-              onclick='copyText(${JSON.stringify(result)})'>
-              📋 Copy
-            </button>
-
-            <button class="btn good"
-              onclick='saveContent("AI Ideas",${JSON.stringify(result)})'>
-              💾 Save
-            </button>
-          </div>
-        </div>
-      `;
-
-    toast("AI ideas generated!");
-
-  } catch {
-
-    toast("AI generation failed.");
-
-  }
-}
-
-
-/* =========================
-   CAPTION
-========================= */
-
-async function generateCaption() {
-
-  const topic =
-    document.getElementById("captionTopic")
-      .value.trim();
-
-  if (!topic) {
-    toast("Enter a topic first.");
-    return;
-  }
-
-  try {
-
-    const result = await ai("caption", {
-
-      topic,
-
-      tone:
-        document.getElementById("captionTone").value,
-
-      platform:
-        document.getElementById("captionPlatform").value
-
-    });
-
-    document.getElementById("captionOutput")
-      .innerText = result;
-
-    toast("AI captions generated!");
-
-  } catch {
-
-    document.getElementById("captionOutput")
-      .innerText =
-      "AI generation failed.";
-
-  }
-}
-
-
-/* =========================
-   SCORE
-========================= */
-
-async function analyzeScore() {
-
-  const text =
-    document.getElementById("scoreText")
-      .value.trim();
-
-  if (!text) {
-    toast("Paste content first.");
-    return;
-  }
-
-  try {
-
-    const result = await ai("score", {
-      text
-    });
-
-    document.getElementById("scoreOutput")
-      .innerText = result;
-
-    const match =
-      result.match(/(?:SCORE|Score)\s*:\s*(\d{1,3})/);
-
-    if (match) {
-
-      const score =
-        Math.min(
-          100,
-          Number(match[1])
-        );
-
-      document.getElementById("scoreNumber")
-        .innerText = score;
-
-      document.getElementById("scoreBar")
-        .style.width = score + "%";
-
-    }
-
-    toast("AI analysis complete!");
-
-  } catch {
-
-    document.getElementById("scoreOutput")
-      .innerText =
-      "AI analysis failed.";
-
-  }
-}
-
-
-/* =========================
+/* =========================================
    COPY
-========================= */
+========================================= */
 
-function copyText(text) {
+function copyText(text){
 
-  navigator.clipboard
-    .writeText(text)
-    .then(() => toast("Copied!"))
-    .catch(() => toast("Copy failed."));
+if(!text)return;
+
+navigator.clipboard.writeText(text)
+.then(()=>{
+toast("Copied!");
+})
+.catch(()=>{
+toast("Copy failed");
+});
+
 }
 
 
-function copyElement(id) {
+function copyElement(id){
 
-  const element =
-    document.getElementById(id);
+const element=document.getElementById(id);
 
-  if (element) {
-    copyText(element.innerText);
-  }
+if(element){
+copyText(element.innerText);
+}
+
 }
 
 
-/* =========================
-   SAVED
-========================= */
+/* =========================================
+   AI REQUEST
+========================================= */
 
-function saveContent(type, text) {
+async function askAI(data){
 
-  const saved =
-    JSON.parse(
-      localStorage.getItem(
-        "viralforgeSaved"
-      ) || "[]"
-    );
+const response=await fetch(
+API_URL+"/api/generate",
+{
+method:"POST",
 
-  saved.unshift({
-    type,
-    text,
-    date:
-      new Date().toLocaleString()
-  });
+headers:{
+"Content-Type":"application/json"
+},
 
-  localStorage.setItem(
-    "viralforgeSaved",
-    JSON.stringify(
-      saved.slice(0, 100)
-    )
-  );
+body:JSON.stringify(data)
+}
+);
 
-  toast("Saved!");
+let result;
+
+try{
+result=await response.json();
+}catch{
+throw new Error("Backend returned an invalid response.");
+}
+
+if(!response.ok){
+throw new Error(
+result.error || "AI server error."
+);
+}
+
+if(!result.result){
+throw new Error("No AI result was returned.");
+}
+
+return result.result;
+
 }
 
 
-function saveCurrent(type, id) {
+/* =========================================
+   SCRIPTS
+========================================= */
 
-  const element =
-    document.getElementById(id);
+async function generateScripts(){
 
-  if (element) {
-    saveContent(
-      type,
-      element.innerText
-    );
-  }
+const topic=
+document.getElementById("topic").value.trim();
+
+if(!topic){
+toast("Enter a topic first!");
+return;
+}
+
+const niche=
+document.getElementById("niche").value;
+
+const platform=
+document.getElementById("platform").value;
+
+const style=
+document.getElementById("style").value;
+
+const length=
+document.getElementById("length").value;
+
+const audience=
+document.getElementById("audience").value;
+
+const output=
+document.getElementById("scripts");
+
+output.innerHTML=`
+<div class="result loading">
+🤖 ViralForge AI is creating your content...
+</div>
+`;
+
+try{
+
+const result=await askAI({
+
+type:"scripts",
+topic,
+niche,
+platform,
+style,
+length,
+audience,
+count:3
+
+});
+
+output.innerHTML=`
+<div class="result">${escapeHTML(result)}</div>
+
+<div class="actions">
+
+<button class="btn"
+onclick='copyText(${JSON.stringify(result)})'>
+📋 Copy
+</button>
+
+<button class="btn good"
+onclick='saveContent("AI Script",${JSON.stringify(result)})'>
+💾 Save
+</button>
+
+<button class="btn"
+onclick='document.getElementById("scoreText").value=${JSON.stringify(result)};openPage("score")'>
+📊 Score
+</button>
+
+</div>
+`;
+
+toast("🔥 AI content generated!");
+
+}catch(error){
+
+output.innerHTML=`
+<div class="result">
+❌ AI generation failed.
+
+${escapeHTML(error.message)}
+
+<br><br>
+Make sure your Render backend is running and your OpenAI key is configured.
+</div>
+`;
+
+toast("AI generation failed");
+
+}
+
 }
 
 
-function renderSaved() {
+/* =========================================
+   HOOKS
+========================================= */
 
-  const output =
-    document.getElementById("savedOutput");
+async function generateHooks(){
 
-  const saved =
-    JSON.parse(
-      localStorage.getItem(
-        "viralforgeSaved"
-      ) || "[]"
-    );
+const topic=
+document.getElementById("hookTopic").value.trim();
 
-  if (!saved.length) {
+if(!topic){
+toast("Enter a topic first!");
+return;
+}
 
-    output.innerHTML =
-      `<div class="result">
-        Nothing saved yet.
-      </div>`;
+const niche=
+document.getElementById("hookNiche").value;
 
-    return;
-  }
+const style=
+document.getElementById("hookStyle").value;
 
-  output.innerHTML =
-    saved.map((item, index) => `
+const output=
+document.getElementById("hookOutput");
 
-      <div class="history-item">
+output.innerText=
+"🤖 Creating 12 hooks...";
 
-        <div>
+try{
 
-          <b>
-            ${escapeHTML(item.type)}
-          </b>
+const result=await askAI({
 
-          <br>
+type:"hooks",
+topic,
+niche,
+style,
+platform:"Short-form video",
+count:12
 
-          <small class="muted">
-            ${escapeHTML(item.date)}
-          </small>
+});
 
-          <p class="muted">
-            ${escapeHTML(
-              item.text.substring(0, 300)
-            )}
-          </p>
+output.innerText=result;
 
-        </div>
+toast("🪝 12 AI hooks generated!");
 
-        <div class="actions">
+}catch(error){
 
-          <button
-            class="btn"
-            onclick="copySaved(${index})">
-            Copy
-          </button>
+output.innerText=
+"❌ "+error.message;
 
-          <button
-            class="btn danger"
-            onclick="deleteSaved(${index})">
-            Delete
-          </button>
+toast("Hook generation failed");
 
-        </div>
+}
 
-      </div>
-
-    `).join("");
 }
 
 
-function copySaved(index) {
+function randomHook(){
 
-  const saved =
-    JSON.parse(
-      localStorage.getItem(
-        "viralforgeSaved"
-      ) || "[]"
-    );
+const topics=[
+"growing on YouTube",
+"getting better at basketball",
+"learning faster",
+"starting a gaming channel",
+"saving money",
+"making better videos",
+"staying consistent",
+"getting more views"
+];
 
-  copyText(saved[index].text);
+document.getElementById("hookTopic").value=
+topics[Math.floor(Math.random()*topics.length)];
+
+generateHooks();
+
 }
 
 
-function deleteSaved(index) {
+/* =========================================
+   IDEAS
+========================================= */
 
-  const saved =
-    JSON.parse(
-      localStorage.getItem(
-        "viralforgeSaved"
-      ) || "[]"
-    );
+async function generateIdeas(){
 
-  saved.splice(index, 1);
+const niche=
+document.getElementById("ideaNiche").value;
 
-  localStorage.setItem(
-    "viralforgeSaved",
-    JSON.stringify(saved)
-  );
+const platform=
+document.getElementById("ideaPlatform").value;
 
-  renderSaved();
+const goal=
+document.getElementById("ideaGoal").value;
 
-  toast("Deleted.");
+const output=
+document.getElementById("ideaOutput");
+
+output.innerHTML=`
+<div class="result loading" style="grid-column:1/-1">
+🤖 Creating 20 ideas...
+</div>
+`;
+
+try{
+
+const result=await askAI({
+
+type:"ideas",
+niche,
+platform,
+goal,
+count:20
+
+});
+
+output.innerHTML=`
+<div class="result" style="grid-column:1/-1">
+${escapeHTML(result)}
+</div>
+`;
+
+toast("💡 20 AI ideas generated!");
+
+}catch(error){
+
+output.innerHTML=`
+<div class="result" style="grid-column:1/-1">
+❌ ${escapeHTML(error.message)}
+</div>
+`;
+
+toast("Idea generation failed");
+
+}
+
 }
 
 
-function clearSaved() {
+/* =========================================
+   CAPTION
+========================================= */
 
-  localStorage.removeItem(
-    "viralforgeSaved"
-  );
+async function generateCaption(){
 
-  renderSaved();
+const topic=
+document.getElementById("captionTopic").value.trim();
 
-  toast("Saved content cleared.");
+if(!topic){
+toast("Enter a topic first!");
+return;
+}
+
+const tone=
+document.getElementById("captionTone").value;
+
+const platform=
+document.getElementById("captionPlatform").value;
+
+const output=
+document.getElementById("captionOutput");
+
+output.innerText=
+"🤖 Creating caption...";
+
+try{
+
+const result=await askAI({
+
+type:"caption",
+topic,
+tone,
+platform
+
+});
+
+output.innerText=result;
+
+toast("✍️ Caption generated!");
+
+}catch(error){
+
+output.innerText=
+"❌ "+error.message;
+
+toast("Caption generation failed");
+
+}
+
 }
 
 
-/* =========================
-   ESCAPE
-========================= */
+/* =========================================
+   SCORE
+========================================= */
 
-function escapeHTML(text) {
+async function analyzeScore(){
 
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+const text=
+document.getElementById("scoreText").value.trim();
+
+if(!text){
+toast("Paste some content first!");
+return;
+}
+
+const number=
+document.getElementById("scoreNumber");
+
+const bar=
+document.getElementById("scoreBar");
+
+const output=
+document.getElementById("scoreOutput");
+
+number.innerText="...";
+
+bar.style.width="0%";
+
+output.innerText=
+"🤖 Analyzing your content...";
+
+try{
+
+const result=await askAI({
+
+type:"score",
+text
+
+});
+
+output.innerText=result;
+
+const match=result.match(/SCORE:\s*(\d+)/i);
+
+if(match){
+
+const score=
+Math.min(100,Math.max(0,Number(match[1])));
+
+number.innerText=score;
+
+bar.style.width=score+"%";
+
+document.getElementById("scoreStats").innerHTML=`
+<div class="stat">
+<b>${score}</b>
+<span>AI Score</span>
+</div>
+<div class="stat">
+<b>AI</b>
+<span>Analysis</span>
+</div>
+<div class="stat">
+<b>✓</b>
+<span>Reviewed</span>
+</div>
+<div class="stat">
+<b>100</b>
+<span>Maximum</span>
+</div>
+`;
+
+}
+
+toast("📊 Content analyzed!");
+
+}catch(error){
+
+number.innerText="--";
+
+output.innerText=
+"❌ "+error.message;
+
+toast("Score failed");
+
+}
+
 }
 
 
-/* =========================
-   RANDOM
-========================= */
+/* =========================================
+   SAVED CONTENT
+========================================= */
 
-function surpriseMe() {
+function saveContent(type,text){
 
-  const topics = [
-    "3 mistakes beginners make in gaming",
-    "how to get better at basketball",
-    "a study trick that actually helps",
-    "what I learned after failing",
-    "3 useful phone features",
-    "how to start a channel from zero",
-    "a simple money habit",
-    "how to make better short videos",
-    "the biggest creator mistake",
-    "something nobody tells beginners"
-  ];
+if(!text)return;
 
-  document.getElementById("topic").value =
-    topics[
-      Math.floor(
-        Math.random() * topics.length
-      )
-    ];
+const saved=
+JSON.parse(
+localStorage.getItem("viralforgeSaved")||"[]"
+);
 
-  openPage("studio");
+saved.unshift({
 
-  toast("Random topic loaded.");
+type,
+text,
+date:new Date().toLocaleString()
+
+});
+
+localStorage.setItem(
+"viralforgeSaved",
+JSON.stringify(saved.slice(0,100))
+);
+
+toast("💾 Saved!");
+
 }
 
 
-function randomHook() {
+function saveCurrent(type,id){
 
-  const topics = [
-    "growing on YouTube",
-    "getting better at basketball",
-    "learning faster",
-    "starting a gaming channel",
-    "making better videos",
-    "staying consistent",
-    "getting more views"
-  ];
+const element=
+document.getElementById(id);
 
-  document.getElementById("hookTopic").value =
-    topics[
-      Math.floor(
-        Math.random() * topics.length
-      )
-    ];
+if(element){
 
-  generateHooks();
+saveContent(
+type,
+element.innerText
+);
+
+}
+
 }
 
 
-/* =========================
+function renderSaved(){
+
+const output=
+document.getElementById("savedOutput");
+
+const saved=
+JSON.parse(
+localStorage.getItem("viralforgeSaved")||"[]"
+);
+
+if(!saved.length){
+
+output.innerHTML=
+`<div class="result">
+Nothing saved yet.
+</div>`;
+
+return;
+
+}
+
+output.innerHTML=
+saved.map((item,index)=>`
+
+<div class="history-item">
+
+<div>
+
+<b>${escapeHTML(item.type)}</b>
+
+<br>
+
+<small class="muted">
+${escapeHTML(item.date)}
+</small>
+
+<p class="muted">
+${escapeHTML(
+item.text.substring(0,250)
+)}
+${item.text.length>250?"...":""}
+</p>
+
+</div>
+
+<div class="actions">
+
+<button class="btn"
+onclick="copySaved(${index})">
+Copy
+</button>
+
+<button class="btn danger"
+onclick="deleteSaved(${index})">
+Delete
+</button>
+
+</div>
+
+</div>
+
+`).join("");
+
+}
+
+
+function copySaved(index){
+
+const saved=
+JSON.parse(
+localStorage.getItem("viralforgeSaved")||"[]"
+);
+
+copyText(saved[index].text);
+
+}
+
+
+function deleteSaved(index){
+
+const saved=
+JSON.parse(
+localStorage.getItem("viralforgeSaved")||"[]"
+);
+
+saved.splice(index,1);
+
+localStorage.setItem(
+"viralforgeSaved",
+JSON.stringify(saved)
+);
+
+renderSaved();
+
+toast("Deleted");
+
+}
+
+
+function clearSaved(){
+
+if(!confirm("Delete all saved content?")){
+return;
+}
+
+localStorage.removeItem("viralforgeSaved");
+
+renderSaved();
+
+toast("All saved content cleared");
+
+}
+
+
+/* =========================================
+   RANDOM TOPIC
+========================================= */
+
+function surpriseMe(){
+
+const topics=[
+"3 mistakes beginners make in gaming",
+"how to get better at basketball",
+"a study trick that actually helps",
+"what I learned after failing",
+"3 useful phone features",
+"how I would start a channel from zero",
+"a simple money habit",
+"how to make better short videos",
+"the biggest creator mistake",
+"something nobody tells beginners"
+];
+
+const topic=
+topics[Math.floor(Math.random()*topics.length)];
+
+document.getElementById("topic").value=topic;
+
+openPage("studio");
+
+toast("🎲 Random idea loaded");
+
+}
+
+
+/* =========================================
+   SETTINGS
+========================================= */
+
+function saveSettings(){
+
+localStorage.setItem(
+"viralforgeDefaultNiche",
+document.getElementById("defaultNiche").value
+);
+
+toast("Settings saved");
+
+}
+
+
+function resetSettings(){
+
+localStorage.removeItem(
+"viralforgeDefaultNiche"
+);
+
+document.getElementById("defaultNiche").value=
+"General";
+
+toast("Settings reset");
+
+}
+
+
+/* =========================================
+   HTML SAFETY
+========================================= */
+
+function escapeHTML(text){
+
+return String(text)
+
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
+
+}
+
+
+/* =========================================
+   LOAD SETTINGS
+========================================= */
+
+const savedNiche=
+localStorage.getItem(
+"viralforgeDefaultNiche"
+);
+
+if(savedNiche){
+
+document.getElementById(
+"defaultNiche"
+).value=savedNiche;
+
+}
+
+
+/* =========================================
+   KEYBOARD SHORTCUT
+========================================= */
+
+document.addEventListener("keydown",event=>{
+
+if(
+(event.ctrlKey||event.metaKey)&&
+event.key.toLowerCase()==="k"
+){
+
+event.preventDefault();
+
+openPage("studio");
+
+document.getElementById("topic").focus();
+
+}
+
+});
+
+
+/* =========================================
    START
-========================= */
+========================================= */
 
 renderSaved();
 
 </script>
+
+</body>
+</html>
