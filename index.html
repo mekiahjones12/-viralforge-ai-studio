@@ -1102,10 +1102,14 @@ onclick='copyText(${JSON.stringify(result)})'>
 onclick='saveContent("AI Script",${JSON.stringify(result)})'>
 💾 Save
 </button>
-
 <button class="btn"
 onclick='document.getElementById("scoreText").value=${JSON.stringify(result)};openPage("score")'>
 📊 Score
+</button>
+
+<button class="btn primary"
+onclick="useScriptForVideo()">
+📝 Use Script for Video
 </button>
 
 </div>
