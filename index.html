@@ -362,8 +362,8 @@ button{cursor:pointer}
 <button data-page="captions">✍️ <span>Captions</span></button>
 <button data-page="score">📊 <span>Viral Score</span></button>
 <button data-page="saved">💾 <span>Saved</span></button>
+<button data-page="video">🎥 <span>Video Lab</span></button>
 <button data-page="settings">⚙️ <span>Settings</span></button>
-
 </div>
 </aside>
 
@@ -735,11 +735,64 @@ Your analysis will appear here.
 
 <div id="savedOutput" class="history"></div>
 
+</section>
+
+<section id="video" class="page">
+
+<div class="panel">
+
+<h2>🎥 Video Lab</h2>
+
+<p class="muted">Turn a prompt into an AI video with Veo.</p>
+
+<div class="field">
+
+<label>VIDEO PROMPT</label>
+
+<textarea
+id="videoPrompt"
+placeholder="Example: A cinematic basketball game-winning shot in a packed gym."
+></textarea>
+
 </div>
+
+<div class="field">
+
+<label>ASPECT RATIO</label>
+
+<select id="videoAspect">
+
+<option value="9:16">9:16 — Shorts / TikTok / Reels</option>
+
+<option value="16:9">16:9 — YouTube</option>
+
+</select>
+
+</div>
+
+<div class="actions">
+
+<button class="btn primary" onclick="generateVideo()">
+🎬 Generate AI Video
+</button>
+
+<button class="btn" onclick="useScriptForVideo()">
+📝 Use Current Script
+</button>
+
+</div>
+
+<div id="videoStatus" class="result">
+Your generated video will appear here.
+</div>
+
+<div id="videoOutput"></div>
+
+</div>
+
 </section>
 
 <section id="settings" class="page">
-
 <div class="panel">
 
 <h2>⚙️ Settings</h2>
@@ -830,6 +883,7 @@ ideas:"Idea Lab",
 captions:"Captions",
 score:"Viral Score",
 saved:"Saved Content",
+video:"Video Lab",
 settings:"Settings"
 };
 
@@ -1309,7 +1363,8 @@ toast("Score failed");
 }
 
 
-/* =========================================
+
+  /* =========================================
    SAVED CONTENT
 ========================================= */
 
