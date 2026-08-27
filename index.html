@@ -1632,6 +1632,194 @@ document.getElementById(
 
 
 /* =========================================
+   VIDEO LAB
+========================================= */
+
+async function generateVideo(){
+
+const prompt=
+document.getElementById("videoPrompt").value.trim();
+
+const aspect=
+document.getElementById("videoAspect").value;
+
+const status=
+document.getElementById("videoStatus");
+
+const output=
+document.getElementById("videoOutput");
+
+if(!prompt){
+
+toast("Enter a video prompt first!");
+
+return;
+
+}
+
+status.innerText=
+"🎬 Creating your AI video... This may take a few minutes.";
+
+output.innerHTML="";
+
+try{
+
+const response=await fetch(
+API_URL+"/api/video",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+prompt,
+aspectRatio:aspect
+})
+}
+);
+
+let result;
+
+try{
+
+result=await response.json();
+
+}catch{
+
+throw new Error(
+"Backend returned invalid JSON."
+);
+
+}
+
+if(!response.ok){
+
+throw new Error(
+result.error ||
+"Video generation failed."
+);
+
+}
+
+if(!result.videoUrl){
+
+throw new Error(
+"No video URL was returned."
+);
+
+}
+
+status.innerText=
+"✅ Video generated successfully!";
+
+output.innerHTML=`
+
+<div class="result">
+
+<video
+controls
+playsinline
+style="
+width:100%;
+max-width:900px;
+border-radius:14px;
+display:block;
+margin-top:10px;
+"
+src="${escapeHTML(result.videoUrl)}">
+</video>
+
+<br>
+
+<div class="actions">
+
+<a
+class="btn primary"
+href="${escapeHTML(result.videoUrl)}"
+target="_blank"
+rel="noopener">
+▶️ Open Video
+</a>
+
+</div>
+
+</div>
+
+`;
+
+toast("🎬 AI video generated!");
+
+}catch(error){
+
+status.innerText=
+"❌ Video generation failed.";
+
+output.innerHTML=`
+
+<div class="result">
+
+❌ ${escapeHTML(error.message)}
+
+</div>
+
+`;
+
+toast("Video generation failed");
+
+}
+
+}
+
+
+/* =========================================
+   USE SCRIPT FOR VIDEO
+========================================= */
+
+function useScriptForVideo(){
+
+const scriptOutput=
+document.querySelector("#scripts .result");
+
+if(!scriptOutput){
+
+toast("Generate a script first!");
+
+return;
+
+}
+
+const text=
+scriptOutput.innerText.trim();
+
+if(
+!text ||
+text==="Your AI content will appear here."
+){
+
+toast("Generate a script first!");
+
+return;
+
+}
+
+document.getElementById("videoPrompt").value=
+`Create a vertical short-form video based on this script.
+
+Make the visuals engaging, fast-paced, cinematic, and appropriate for TikTok, YouTube Shorts, and Instagram Reels.
+
+Script:
+
+${text}
+`;
+
+openPage("video");
+
+toast("📝 Script added to Video Lab!");
+
+}
+
+
+/* =========================================
    START
 ========================================= */
 
