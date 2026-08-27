@@ -8,14 +8,61 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 
+// ========================================
+// GEMINI CONFIG
+// ========================================
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const ai = GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: GEMINI_API_KEY })
   : null;
 
-const TEXT_MODEL = "gemini-3.7-flash";
+// Primary model + fallbacks
+const TEXT_MODELS = [
+  "gemini-3.7-flash",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash"
+];
+
 const VIDEO_MODEL = "veo-3.1-generate-preview";
+
+// Retry settings
+const MAX_RETRIES_PER_MODEL = 2;
+const RETRY_DELAY_MS = 2000;
+
+// ========================================
+// HELPERS
+// ========================================
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getErrorStatus(error) {
+  return (
+    error?.status ||
+    error?.code ||
+    error?.error?.status ||
+    error?.error?.code ||
+    null
+  );
+}
+
+function isTemporaryError(error) {
+  const status = getErrorStatus(error);
+
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    error?.message?.includes("UNAVAILABLE") ||
+    error?.message?.includes("overloaded") ||
+    error?.message?.includes("high demand")
+  );
+}
 
 // ========================================
 // HEALTH
@@ -25,12 +72,17 @@ app.get("/", (req, res) => {
   res.json({
     ok: true,
     name: "ViralForge AI Studio",
-    version: "6.0.0",
+    version: "7.0.0",
     aiConfigured: Boolean(GEMINI_API_KEY),
     features: [
-      "Gemini 3.7 Flash",
+      "Gemini automatic retry",
+      "Gemini automatic model fallback",
       "Veo 3.1 video generation"
     ],
+    models: {
+      text: TEXT_MODELS,
+      video: VIDEO_MODEL
+    },
     message: "ViralForge backend is running."
   });
 });
@@ -44,20 +96,91 @@ app.get("/health", (req, res) => {
 });
 
 // ========================================
-// GEMINI TEXT
+// GEMINI TEXT WITH RETRY + FALLBACK
 // ========================================
 
 async function askGemini(prompt) {
   if (!ai) {
-    throw new Error("GEMINI_API_KEY is not configured on Render.");
+    throw new Error(
+      "GEMINI_API_KEY is not configured on Render."
+    );
   }
 
-  const response = await ai.models.generateContent({
-    model: TEXT_MODEL,
-    contents: prompt
-  });
+  let lastError = null;
 
-  return response.text || "";
+  // Try every model
+  for (const model of TEXT_MODELS) {
+    console.log(`Trying Gemini model: ${model}`);
+
+    // Retry each model
+    for (let attempt = 1; attempt <= MAX_RETRIES_PER_MODEL; attempt++) {
+      try {
+        console.log(
+          `Gemini attempt ${attempt}/${MAX_RETRIES_PER_MODEL} using ${model}`
+        );
+
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            thinkingConfig: {
+              thinkingLevel: "low"
+            }
+          }
+        });
+
+        const text = response.text || "";
+
+        if (!text.trim()) {
+          throw new Error(
+            `Gemini model ${model} returned an empty response.`
+          );
+        }
+
+        console.log(`Gemini success using ${model}`);
+
+        return {
+          text,
+          model
+        };
+
+      } catch (error) {
+        lastError = error;
+
+        console.error(
+          `Gemini ${model} attempt ${attempt} failed:`,
+          error?.message || error
+        );
+
+        // Don't waste time retrying permanent errors
+        if (!isTemporaryError(error)) {
+          throw error;
+        }
+
+        // Wait before retrying
+        if (attempt < MAX_RETRIES_PER_MODEL) {
+          const delay =
+            RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+
+          console.log(
+            `Temporary Gemini error. Retrying in ${delay}ms...`
+          );
+
+          await sleep(delay);
+        }
+      }
+    }
+
+    console.log(
+      `Model ${model} unavailable. Moving to next fallback model...`
+    );
+  }
+
+  throw new Error(
+    `All Gemini models are temporarily unavailable. Last error: ${
+      lastError?.message || "Unknown Gemini error"
+    }`
+  );
 }
 
 // ========================================
@@ -80,6 +203,10 @@ app.post("/api/generate", async (req, res) => {
     } = req.body || {};
 
     let prompt = "";
+
+    // ========================================
+    // SCRIPTS
+    // ========================================
 
     if (type === "scripts") {
       if (!topic.trim()) {
@@ -126,6 +253,10 @@ Do not guarantee views or virality.
 `;
     }
 
+    // ========================================
+    // HOOKS
+    // ========================================
+
     else if (type === "hooks") {
       if (!topic.trim()) {
         return res.status(400).json({
@@ -160,6 +291,10 @@ Do not promise guaranteed views.
 `;
     }
 
+    // ========================================
+    // IDEAS
+    // ========================================
+
     else if (type === "ideas") {
       prompt = `
 You are ViralForge Idea Lab.
@@ -182,6 +317,10 @@ Make every idea substantially different.
 Avoid fake statistics and guaranteed-virality claims.
 `;
     }
+
+    // ========================================
+    // CAPTIONS
+    // ========================================
 
     else if (type === "caption") {
       if (!topic.trim()) {
@@ -207,6 +346,10 @@ Number them 1 through 5.
 Include a few relevant hashtags with each.
 `;
     }
+
+    // ========================================
+    // SCORE
+    // ========================================
 
     else if (type === "score") {
       if (!text.trim()) {
@@ -256,6 +399,10 @@ Do not claim the score predicts actual views.
 `;
     }
 
+    // ========================================
+    // UNKNOWN TYPE
+    // ========================================
+
     else {
       return res.status(400).json({
         ok: false,
@@ -263,11 +410,16 @@ Do not claim the score predicts actual views.
       });
     }
 
+    // ========================================
+    // CALL GEMINI
+    // ========================================
+
     const result = await askGemini(prompt);
 
     res.json({
       ok: true,
-      result
+      result: result.text,
+      model: result.model
     });
 
   } catch (error) {
@@ -275,7 +427,9 @@ Do not claim the score predicts actual views.
 
     res.status(500).json({
       ok: false,
-      error: error?.message || "Gemini request failed."
+      error:
+        error?.message ||
+        "Gemini request failed after retries and fallbacks."
     });
   }
 });
@@ -325,9 +479,7 @@ app.post("/api/video", async (req, res) => {
     console.log("Veo operation started.");
 
     while (!operation.done) {
-      await new Promise(resolve => {
-        setTimeout(resolve, 10000);
-      });
+      await sleep(10000);
 
       operation = await ai.operations.getVideosOperation({
         operation
@@ -358,7 +510,9 @@ app.post("/api/video", async (req, res) => {
 
     res.status(500).json({
       ok: false,
-      error: error?.message || "Veo video generation failed."
+      error:
+        error?.message ||
+        "Veo video generation failed."
     });
   }
 });
@@ -397,7 +551,9 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log("================================");
   console.log(`Port: ${PORT}`);
   console.log(`Gemini configured: ${Boolean(GEMINI_API_KEY)}`);
-  console.log(`Text model: ${TEXT_MODEL}`);
+  console.log(`Text models: ${TEXT_MODELS.join(", ")}`);
   console.log(`Video model: ${VIDEO_MODEL}`);
+  console.log("Automatic retry: ENABLED");
+  console.log("Automatic fallback: ENABLED");
   console.log("Server is running.");
 });
