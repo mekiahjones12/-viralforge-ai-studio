@@ -1,3 +1,4 @@
+```js
 import express from "express";
 import cors from "cors";
 import { GoogleGenAI } from "@google/genai";
@@ -18,7 +19,6 @@ const ai = GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: GEMINI_API_KEY })
   : null;
 
-// Primary model + fallbacks
 const TEXT_MODELS = [
   "gemini-3.7-flash",
   "gemini-3.6-flash",
@@ -27,7 +27,6 @@ const TEXT_MODELS = [
 
 const VIDEO_MODEL = "veo-3.1-generate-preview";
 
-// Retry settings
 const MAX_RETRIES_PER_MODEL = 2;
 const RETRY_DELAY_MS = 2000;
 
@@ -72,7 +71,7 @@ app.get("/", (req, res) => {
   res.json({
     ok: true,
     name: "ViralForge AI Studio",
-    version: "7.0.0",
+    version: "8.0.0",
     aiConfigured: Boolean(GEMINI_API_KEY),
     features: [
       "Gemini automatic retry",
@@ -96,7 +95,7 @@ app.get("/health", (req, res) => {
 });
 
 // ========================================
-// GEMINI TEXT WITH RETRY + FALLBACK
+// GEMINI TEXT
 // ========================================
 
 async function askGemini(prompt) {
@@ -108,28 +107,31 @@ async function askGemini(prompt) {
 
   let lastError = null;
 
-  // Try every model
   for (const model of TEXT_MODELS) {
+
     console.log(`Trying Gemini model: ${model}`);
 
-    // Retry each model
-    for (let attempt = 1; attempt <= MAX_RETRIES_PER_MODEL; attempt++) {
+    for (
+      let attempt = 1;
+      attempt <= MAX_RETRIES_PER_MODEL;
+      attempt++
+    ) {
+
       try {
-        console.log(
-          `Gemini attempt ${attempt}/${MAX_RETRIES_PER_MODEL} using ${model}`
-        );
 
-        const response = await ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            thinkingConfig: {
-              thinkingLevel: "low"
+        const response =
+          await ai.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+              thinkingConfig: {
+                thinkingLevel: "low"
+              }
             }
-          }
-        });
+          });
 
-        const text = response.text || "";
+        const text =
+          response.text || "";
 
         if (!text.trim()) {
           throw new Error(
@@ -137,7 +139,9 @@ async function askGemini(prompt) {
           );
         }
 
-        console.log(`Gemini success using ${model}`);
+        console.log(
+          `Gemini success using ${model}`
+        );
 
         return {
           text,
@@ -145,6 +149,7 @@ async function askGemini(prompt) {
         };
 
       } catch (error) {
+
         lastError = error;
 
         console.error(
@@ -152,28 +157,20 @@ async function askGemini(prompt) {
           error?.message || error
         );
 
-        // Don't waste time retrying permanent errors
         if (!isTemporaryError(error)) {
           throw error;
         }
 
-        // Wait before retrying
         if (attempt < MAX_RETRIES_PER_MODEL) {
-          const delay =
-            RETRY_DELAY_MS * Math.pow(2, attempt - 1);
 
-          console.log(
-            `Temporary Gemini error. Retrying in ${delay}ms...`
-          );
+          const delay =
+            RETRY_DELAY_MS *
+            Math.pow(2, attempt - 1);
 
           await sleep(delay);
         }
       }
     }
-
-    console.log(
-      `Model ${model} unavailable. Moving to next fallback model...`
-    );
   }
 
   throw new Error(
@@ -188,7 +185,9 @@ async function askGemini(prompt) {
 // ========================================
 
 app.post("/api/generate", async (req, res) => {
+
   try {
+
     const {
       type = "scripts",
       topic = "",
@@ -209,6 +208,7 @@ app.post("/api/generate", async (req, res) => {
     // ========================================
 
     if (type === "scripts") {
+
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -251,6 +251,7 @@ Prioritize:
 
 Do not guarantee views or virality.
 `;
+
     }
 
     // ========================================
@@ -258,6 +259,7 @@ Do not guarantee views or virality.
     // ========================================
 
     else if (type === "hooks") {
+
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -289,6 +291,7 @@ Number them 1 through 12.
 Keep them short, natural, and easy to say.
 Do not promise guaranteed views.
 `;
+
     }
 
     // ========================================
@@ -296,6 +299,7 @@ Do not promise guaranteed views.
     // ========================================
 
     else if (type === "ideas") {
+
       prompt = `
 You are ViralForge Idea Lab.
 
@@ -316,6 +320,7 @@ Make every idea substantially different.
 
 Avoid fake statistics and guaranteed-virality claims.
 `;
+
     }
 
     // ========================================
@@ -323,6 +328,7 @@ Avoid fake statistics and guaranteed-virality claims.
     // ========================================
 
     else if (type === "caption") {
+
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -345,6 +351,7 @@ Make them natural, engaging, and appropriate for short-form content.
 Number them 1 through 5.
 Include a few relevant hashtags with each.
 `;
+
     }
 
     // ========================================
@@ -352,6 +359,7 @@ Include a few relevant hashtags with each.
     // ========================================
 
     else if (type === "score") {
+
       if (!text.trim()) {
         return res.status(400).json({
           ok: false,
@@ -397,24 +405,24 @@ IMPROVEMENTS:
 
 Do not claim the score predicts actual views.
 `;
+
     }
 
     // ========================================
-    // UNKNOWN TYPE
+    // UNKNOWN
     // ========================================
 
     else {
+
       return res.status(400).json({
         ok: false,
         error: `Unknown AI type: ${type}`
       });
+
     }
 
-    // ========================================
-    // CALL GEMINI
-    // ========================================
-
-    const result = await askGemini(prompt);
+    const result =
+      await askGemini(prompt);
 
     res.json({
       ok: true,
@@ -423,18 +431,23 @@ Do not claim the score predicts actual views.
     });
 
   } catch (error) {
-    console.error("GEMINI ERROR:", error);
+
+    console.error(
+      "GEMINI ERROR:",
+      error
+    );
 
     res.status(500).json({
       ok: false,
       error:
         error?.message ||
-        "Gemini request failed after retries and fallbacks."
+        "Gemini request failed."
     });
+
   }
+
 });
 
-```js
 // ========================================
 // VEO 3.1 VIDEO GENERATOR
 // ========================================
@@ -448,7 +461,8 @@ app.post("/api/video", async (req, res) => {
     if (!ai) {
       return res.status(500).json({
         ok: false,
-        error: "GEMINI_API_KEY is not configured on Render."
+        error:
+          "GEMINI_API_KEY is not configured on Render."
       });
     }
 
@@ -460,30 +474,37 @@ app.post("/api/video", async (req, res) => {
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({
         ok: false,
-        error: "Video prompt is required."
+        error:
+          "Video prompt is required."
       });
     }
 
     if (!["9:16", "16:9"].includes(aspectRatio)) {
       return res.status(400).json({
         ok: false,
-        error: "Invalid aspect ratio."
+        error:
+          "aspectRatio must be 9:16 or 16:9."
       });
     }
 
-    console.log("🎬 Starting Veo 3.1...");
+    console.log(
+      "🎬 Starting Veo 3.1..."
+    );
 
-    let operation = await ai.models.generateVideos({
-      model: VIDEO_MODEL,
-      prompt: prompt.trim(),
-      config: {
-        aspectRatio
-      }
-    });
+    let operation =
+      await ai.models.generateVideos({
+        model: VIDEO_MODEL,
+        prompt: prompt.trim(),
+        config: {
+          aspectRatio
+        }
+      });
+
+    console.log(
+      "⏳ Veo generation started..."
+    );
 
     while (!operation.done) {
-
-      console.log("⏳ Waiting for Veo...");
 
       await sleep(10000);
 
@@ -491,14 +512,30 @@ app.post("/api/video", async (req, res) => {
         await ai.operations.getVideosOperation({
           operation
         });
+
+      console.log(
+        "⏳ Checking Veo status..."
+      );
     }
 
-    console.log("✅ Veo finished!");
+    console.log(
+      "✅ Veo finished!"
+    );
 
     const generatedVideos =
       operation?.response?.generatedVideos || [];
 
     if (!generatedVideos.length) {
+
+      console.error(
+        "Veo response:",
+        JSON.stringify(
+          operation,
+          null,
+          2
+        )
+      );
+
       throw new Error(
         "Veo finished but no video was returned."
       );
@@ -508,39 +545,67 @@ app.post("/api/video", async (req, res) => {
       generatedVideos[0]?.video;
 
     if (!videoFile) {
+
+      console.error(
+        "Generated video:",
+        JSON.stringify(
+          generatedVideos[0],
+          null,
+          2
+        )
+      );
+
       throw new Error(
         "Veo finished but no video file was found."
       );
     }
 
-    const { randomUUID } =
-      await import("crypto");
+    const {
+      randomUUID
+    } = await import("crypto");
 
     const filePath =
       `/tmp/viralforge-${randomUUID()}.mp4`;
 
-    console.log("⬇️ Downloading Veo video...");
+    console.log(
+      "⬇️ Downloading Veo video..."
+    );
 
     await ai.files.download({
       file: videoFile,
       downloadPath: filePath
     });
 
-    console.log("✅ Video downloaded!");
+    console.log(
+      "✅ Video downloaded!"
+    );
 
-    const videoId = randomUUID();
+    const videoId =
+      randomUUID();
 
-    videoFiles.set(videoId, filePath);
+    videoFiles.set(
+      videoId,
+      filePath
+    );
 
     const videoUrl =
       `${req.protocol}://${req.get("host")}/api/video-file/${videoId}`;
 
-    console.log("🎉 Video URL:", videoUrl);
+    console.log(
+      "🎉 Video ready:"
+    );
+
+    console.log(
+      videoUrl
+    );
 
     res.json({
       ok: true,
       videoUrl,
-      message: "Veo 3.1 video generated successfully."
+      message:
+        "Veo 3.1 video generated successfully.",
+      aspectRatio,
+      model: VIDEO_MODEL
     });
 
   } catch (error) {
@@ -561,81 +626,146 @@ app.post("/api/video", async (req, res) => {
 
 });
 
-
 // ========================================
-// SERVE GENERATED VIDEO
+// SERVE VIDEO FILE
 // ========================================
 
-app.get("/api/video-file/:id", (req, res) => {
+app.get(
+  "/api/video-file/:id",
+  (req, res) => {
 
-  const filePath =
-    videoFiles.get(req.params.id);
+    const filePath =
+      videoFiles.get(
+        req.params.id
+      );
 
-  if (!filePath) {
-    return res.status(404).json({
-      ok: false,
-      error: "Video not found."
-    });
-  }
+    if (!filePath) {
 
-  res.sendFile(
-    filePath,
-    {
-      headers: {
-        "Content-Type": "video/mp4",
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "public, max-age=3600"
-      }
-    },
-    error => {
-
-      if (error) {
-        console.error(
-          "❌ Video playback error:",
-          error.message
-        );
-      }
+      return res.status(404).json({
+        ok: false,
+        error:
+          "Video not found."
+      });
 
     }
-  );
 
-});
-```
+    res.sendFile(
+      filePath,
+      {
+        headers: {
+          "Content-Type":
+            "video/mp4",
+          "Accept-Ranges":
+            "bytes",
+          "Cache-Control":
+            "public, max-age=3600"
+        }
+      },
+      error => {
 
+        if (error) {
+
+          console.error(
+            "Video playback error:",
+            error.message
+          );
+
+        }
+
+      }
+    );
+
+  }
+);
+
+// ========================================
+// 404
+// ========================================
 
 app.use((req, res) => {
+
   res.status(404).json({
     ok: false,
-    error: "Endpoint not found."
+    error:
+      "Endpoint not found."
   });
+
 });
 
 // ========================================
 // ERROR HANDLER
 // ========================================
 
-app.use((err, req, res, next) => {
-  console.error("SERVER ERROR:", err);
+app.use(
+  (err, req, res, next) => {
 
-  res.status(500).json({
-    ok: false,
-    error: "Internal server error."
-  });
-});
+    console.error(
+      "SERVER ERROR:",
+      err
+    );
+
+    res.status(500).json({
+      ok: false,
+      error:
+        "Internal server error."
+    });
+
+  }
+);
 
 // ========================================
 // START
 // ========================================
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("================================");
-  console.log("🔥 ViralForge AI Studio");
-  console.log("================================");
-  console.log(`Port: ${PORT}`);
-  console.log(`Gemini configured: ${Boolean(GEMINI_API_KEY)}`);
-  console.log(`Text models: ${TEXT_MODELS.join(", ")}`);
-  console.log(`Video model: ${VIDEO_MODEL}`);
-  console.log("Automatic retry: ENABLED");
-  console.log("Automatic fallback: ENABLED");
-  console.log("Server is running.");
-});
+app.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+
+    console.log(
+      "================================"
+    );
+
+    console.log(
+      "🔥 ViralForge AI Studio"
+    );
+
+    console.log(
+      "================================"
+    );
+
+    console.log(
+      `Port: ${PORT}`
+    );
+
+    console.log(
+      `Gemini configured: ${Boolean(GEMINI_API_KEY)}`
+    );
+
+    console.log(
+      `Text models: ${TEXT_MODELS.join(", ")}`
+    );
+
+    console.log(
+      `Video model: ${VIDEO_MODEL}`
+    );
+
+    console.log(
+      "Automatic retry: ENABLED"
+    );
+
+    console.log(
+      "Automatic fallback: ENABLED"
+    );
+
+    console.log(
+      "Video file serving: ENABLED"
+    );
+
+    console.log(
+      "Server is running."
+    );
+
+  }
+);
+```
