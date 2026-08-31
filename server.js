@@ -434,12 +434,17 @@ Do not claim the score predicts actual views.
   }
 });
 
+```js
 // ========================================
 // VEO 3.1 VIDEO GENERATOR
 // ========================================
 
+const videoFiles = new Map();
+
 app.post("/api/video", async (req, res) => {
+
   try {
+
     if (!ai) {
       return res.status(500).json({
         ok: false,
@@ -462,11 +467,11 @@ app.post("/api/video", async (req, res) => {
     if (!["9:16", "16:9"].includes(aspectRatio)) {
       return res.status(400).json({
         ok: false,
-        error: "aspectRatio must be 9:16 or 16:9."
+        error: "Invalid aspect ratio."
       });
     }
 
-    console.log("Starting Veo 3.1 generation...");
+    console.log("🎬 Starting Veo 3.1...");
 
     let operation = await ai.models.generateVideos({
       model: VIDEO_MODEL,
@@ -476,37 +481,74 @@ app.post("/api/video", async (req, res) => {
       }
     });
 
-    console.log("Veo operation started.");
-
     while (!operation.done) {
+
+      console.log("⏳ Waiting for Veo...");
+
       await sleep(10000);
 
-      operation = await ai.operations.getVideosOperation({
-        operation
-      });
-
-      console.log("Checking Veo generation status...");
+      operation =
+        await ai.operations.getVideosOperation({
+          operation
+        });
     }
 
+    console.log("✅ Veo finished!");
+
     const generatedVideos =
-      operation.response?.generatedVideos || [];
+      operation?.response?.generatedVideos || [];
 
     if (!generatedVideos.length) {
       throw new Error(
-        "Veo finished but did not return a video."
+        "Veo finished but no video was returned."
       );
     }
 
-    const video = generatedVideos[0];
+    const videoFile =
+      generatedVideos[0]?.video;
+
+    if (!videoFile) {
+      throw new Error(
+        "Veo finished but no video file was found."
+      );
+    }
+
+    const { randomUUID } =
+      await import("crypto");
+
+    const filePath =
+      `/tmp/viralforge-${randomUUID()}.mp4`;
+
+    console.log("⬇️ Downloading Veo video...");
+
+    await ai.files.download({
+      file: videoFile,
+      downloadPath: filePath
+    });
+
+    console.log("✅ Video downloaded!");
+
+    const videoId = randomUUID();
+
+    videoFiles.set(videoId, filePath);
+
+    const videoUrl =
+      `${req.protocol}://${req.get("host")}/api/video-file/${videoId}`;
+
+    console.log("🎉 Video URL:", videoUrl);
 
     res.json({
       ok: true,
-      message: "Veo 3.1 video generated successfully.",
-      video
+      videoUrl,
+      message: "Veo 3.1 video generated successfully."
     });
 
   } catch (error) {
-    console.error("VEO ERROR:", error);
+
+    console.error(
+      "❌ VEO ERROR:",
+      error?.message || error
+    );
 
     res.status(500).json({
       ok: false,
@@ -514,12 +556,52 @@ app.post("/api/video", async (req, res) => {
         error?.message ||
         "Veo video generation failed."
     });
+
   }
+
 });
 
+
 // ========================================
-// 404
+// SERVE GENERATED VIDEO
 // ========================================
+
+app.get("/api/video-file/:id", (req, res) => {
+
+  const filePath =
+    videoFiles.get(req.params.id);
+
+  if (!filePath) {
+    return res.status(404).json({
+      ok: false,
+      error: "Video not found."
+    });
+  }
+
+  res.sendFile(
+    filePath,
+    {
+      headers: {
+        "Content-Type": "video/mp4",
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=3600"
+      }
+    },
+    error => {
+
+      if (error) {
+        console.error(
+          "❌ Video playback error:",
+          error.message
+        );
+      }
+
+    }
+  );
+
+});
+```
+
 
 app.use((req, res) => {
   res.status(404).json({
