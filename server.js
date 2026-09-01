@@ -1,15 +1,12 @@
 ```js
 import express from "express";
 import cors from "cors";
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
 import { GoogleGenAI } from "@google/genai";
+import { randomUUID } from "crypto";
+import fs from "fs";
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-
-app.set("trust proxy", 1);
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
@@ -61,6 +58,7 @@ function getErrorStatus(error) {
 
 function isTemporaryError(error) {
   const status = getErrorStatus(error);
+  const message = String(error?.message || "").toLowerCase();
 
   return (
     status === 429 ||
@@ -68,9 +66,9 @@ function isTemporaryError(error) {
     status === 502 ||
     status === 503 ||
     status === 504 ||
-    error?.message?.includes("UNAVAILABLE") ||
-    error?.message?.includes("overloaded") ||
-    error?.message?.includes("high demand")
+    message.includes("unavailable") ||
+    message.includes("overloaded") ||
+    message.includes("high demand")
   );
 }
 
@@ -82,15 +80,13 @@ app.get("/", (req, res) => {
   res.json({
     ok: true,
     name: "ViralForge AI Studio",
-    version: "9.0.0",
+    version: "10.0.0",
     aiConfigured: Boolean(GEMINI_API_KEY),
     features: [
       "Gemini automatic retry",
       "Gemini automatic model fallback",
       "Veo 3.1 video generation",
-      "Veo video downloading",
-      "Veo browser playback",
-      "HTTPS video URLs"
+      "Video file serving"
     ],
     models: {
       text: TEXT_MODELS,
@@ -103,7 +99,7 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
-    version: "9.0.0",
+    version: "10.0.0",
     aiConfigured: Boolean(GEMINI_API_KEY),
     uptime: process.uptime()
   });
@@ -114,7 +110,6 @@ app.get("/health", (req, res) => {
 // ========================================
 
 async function askGemini(prompt) {
-
   if (!ai) {
     throw new Error(
       "GEMINI_API_KEY is not configured on Render."
@@ -124,7 +119,6 @@ async function askGemini(prompt) {
   let lastError = null;
 
   for (const model of TEXT_MODELS) {
-
     console.log("Trying Gemini model: " + model);
 
     for (
@@ -132,38 +126,38 @@ async function askGemini(prompt) {
       attempt <= MAX_RETRIES_PER_MODEL;
       attempt++
     ) {
-
       try {
-
         console.log(
-  "Gemini attempt " +
-  attempt +
-  "/" +
-  MAX_RETRIES_PER_MODEL
-);
+          "Gemini attempt " +
+          attempt +
+          "/" +
+          MAX_RETRIES_PER_MODEL +
+          " using " +
+          model
+        );
 
-        const response =
-          await ai.models.generateContent({
-            model,
-            contents: prompt,
-            config: {
-              thinkingConfig: {
-                thinkingLevel: "low"
-              }
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            thinkingConfig: {
+              thinkingLevel: "low"
             }
-          });
+          }
+        });
 
-        const text =
-          response.text || "";
+        const text = response.text || "";
 
         if (!text.trim()) {
           throw new Error(
-            `Gemini model ${model} returned an empty response.`
+            "Gemini model " +
+            model +
+            " returned an empty response."
           );
         }
 
         console.log(
-          `Gemini success using ${model}`
+          "Gemini success using " + model
         );
 
         return {
@@ -172,11 +166,14 @@ async function askGemini(prompt) {
         };
 
       } catch (error) {
-
         lastError = error;
 
         console.error(
-          `Gemini ${model} attempt ${attempt} failed:`,
+          "Gemini " +
+          model +
+          " attempt " +
+          attempt +
+          " failed:",
           error?.message || error
         );
 
@@ -185,25 +182,31 @@ async function askGemini(prompt) {
         }
 
         if (attempt < MAX_RETRIES_PER_MODEL) {
-
           const delay =
             RETRY_DELAY_MS *
             Math.pow(2, attempt - 1);
 
           console.log(
-            `Retrying in ${delay}ms...`
+            "Temporary Gemini error. Retrying in " +
+            delay +
+            "ms..."
           );
 
           await sleep(delay);
         }
       }
     }
+
+    console.log(
+      "Model " +
+      model +
+      " unavailable. Moving to next model."
+    );
   }
 
   throw new Error(
-    `All Gemini models are temporarily unavailable. Last error: ${
-      lastError?.message || "Unknown Gemini error"
-    }`
+    "All Gemini models are temporarily unavailable. Last error: " +
+    (lastError?.message || "Unknown Gemini error")
   );
 }
 
@@ -212,9 +215,7 @@ async function askGemini(prompt) {
 // ========================================
 
 app.post("/api/generate", async (req, res) => {
-
   try {
-
     const {
       type = "scripts",
       topic = "",
@@ -235,7 +236,6 @@ app.post("/api/generate", async (req, res) => {
     // ========================================
 
     if (type === "scripts") {
-
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -268,17 +268,16 @@ CTA:
 Make each script natural when spoken aloud.
 
 Prioritize:
-- a strong opening
+- strong opening
 - curiosity
 - clear storytelling
 - specific details
 - retention
-- a satisfying payoff
-- a natural CTA
+- satisfying payoff
+- natural CTA
 
 Do not guarantee views or virality.
 `;
-
     }
 
     // ========================================
@@ -286,7 +285,6 @@ Do not guarantee views or virality.
     // ========================================
 
     else if (type === "hooks") {
-
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -318,7 +316,6 @@ Number them 1 through 12.
 Keep them short, natural, and easy to say.
 Do not promise guaranteed views.
 `;
-
     }
 
     // ========================================
@@ -326,7 +323,6 @@ Do not promise guaranteed views.
     // ========================================
 
     else if (type === "ideas") {
-
       prompt = `
 You are ViralForge Idea Lab.
 
@@ -347,7 +343,6 @@ Make every idea substantially different.
 
 Avoid fake statistics and guaranteed-virality claims.
 `;
-
     }
 
     // ========================================
@@ -355,7 +350,6 @@ Avoid fake statistics and guaranteed-virality claims.
     // ========================================
 
     else if (type === "caption") {
-
       if (!topic.trim()) {
         return res.status(400).json({
           ok: false,
@@ -378,7 +372,6 @@ Make them natural, engaging, and appropriate for short-form content.
 Number them 1 through 5.
 Include a few relevant hashtags with each.
 `;
-
     }
 
     // ========================================
@@ -386,7 +379,6 @@ Include a few relevant hashtags with each.
     // ========================================
 
     else if (type === "score") {
-
       if (!text.trim()) {
         return res.status(400).json({
           ok: false,
@@ -432,7 +424,6 @@ IMPROVEMENTS:
 
 Do not claim the score predicts actual views.
 `;
-
     }
 
     // ========================================
@@ -440,16 +431,13 @@ Do not claim the score predicts actual views.
     // ========================================
 
     else {
-
       return res.status(400).json({
         ok: false,
-        error: `Unknown AI type: ${type}`
+        error: "Unknown AI type: " + type
       });
-
     }
 
-    const result =
-      await askGemini(prompt);
+    const result = await askGemini(prompt);
 
     res.json({
       ok: true,
@@ -458,7 +446,6 @@ Do not claim the score predicts actual views.
     });
 
   } catch (error) {
-
     console.error(
       "GEMINI ERROR:",
       error
@@ -470,9 +457,7 @@ Do not claim the score predicts actual views.
         error?.message ||
         "Gemini request failed."
     });
-
   }
-
 });
 
 // ========================================
@@ -480,17 +465,13 @@ Do not claim the score predicts actual views.
 // ========================================
 
 app.post("/api/video", async (req, res) => {
-
   try {
-
     if (!ai) {
-
       return res.status(500).json({
         ok: false,
         error:
           "GEMINI_API_KEY is not configured on Render."
       });
-
     }
 
     const {
@@ -499,50 +480,23 @@ app.post("/api/video", async (req, res) => {
     } = req.body || {};
 
     if (!prompt || !prompt.trim()) {
-
       return res.status(400).json({
         ok: false,
-        error:
-          "Video prompt is required."
+        error: "Video prompt is required."
       });
-
     }
 
     if (!["9:16", "16:9"].includes(aspectRatio)) {
-
       return res.status(400).json({
         ok: false,
         error:
           "aspectRatio must be 9:16 or 16:9."
       });
-
     }
 
     console.log(
-      "================================"
+      "Starting Veo 3.1 video generation..."
     );
-
-    console.log(
-      "🎬 STARTING VEO 3.1"
-    );
-
-    console.log(
-      "================================"
-    );
-
-    console.log(
-      "Prompt:",
-      prompt.trim()
-    );
-
-    console.log(
-      "Aspect ratio:",
-      aspectRatio
-    );
-
-    // ========================================
-    // START VEO
-    // ========================================
 
     let operation =
       await ai.models.generateVideos({
@@ -554,15 +508,10 @@ app.post("/api/video", async (req, res) => {
       });
 
     console.log(
-      "⏳ Veo operation started."
+      "Veo operation started."
     );
 
-    // ========================================
-    // WAIT FOR VEO
-    // ========================================
-
     while (!operation.done) {
-
       await sleep(10000);
 
       operation =
@@ -571,54 +520,20 @@ app.post("/api/video", async (req, res) => {
         });
 
       console.log(
-        "⏳ Checking Veo status..."
+        "Checking Veo generation status..."
       );
     }
 
     console.log(
-      "✅ Veo operation finished."
+      "Veo operation finished."
     );
-
-    // ========================================
-    // CHECK OPERATION ERROR
-    // ========================================
-
-    if (operation.error) {
-
-      console.error(
-        "Veo operation error:",
-        JSON.stringify(
-          operation.error,
-          null,
-          2
-        )
-      );
-
-      throw new Error(
-        operation.error.message ||
-        "Veo generation failed."
-      );
-    }
-
-    // ========================================
-    // GET GENERATED VIDEO
-    // ========================================
 
     const generatedVideos =
       operation?.response?.generatedVideos || [];
 
-    console.log(
-      "Generated video count:",
-      generatedVideos.length
-    );
-
     if (!generatedVideos.length) {
-
       console.error(
-        "FULL VEO RESPONSE:"
-      );
-
-      console.error(
+        "Full Veo response:",
         JSON.stringify(
           operation,
           null,
@@ -627,7 +542,7 @@ app.post("/api/video", async (req, res) => {
       );
 
       throw new Error(
-        "Veo finished but returned no generated video."
+        "Veo finished but returned no generated videos."
       );
     }
 
@@ -635,12 +550,8 @@ app.post("/api/video", async (req, res) => {
       generatedVideos[0]?.video;
 
     if (!videoFile) {
-
       console.error(
-        "VIDEO OBJECT:"
-      );
-
-      console.error(
+        "Generated video object:",
         JSON.stringify(
           generatedVideos[0],
           null,
@@ -653,21 +564,15 @@ app.post("/api/video", async (req, res) => {
       );
     }
 
-    // ========================================
-    // CREATE LOCAL FILE
-    // ========================================
-
-    const videoId =
-      crypto.randomUUID();
+    const videoId = randomUUID();
 
     const filePath =
-      path.join(
-        "/tmp",
-        `viralforge-${videoId}.mp4`
-      );
+      "/tmp/viralforge-" +
+      videoId +
+      ".mp4";
 
     console.log(
-      "⬇️ Downloading Veo video..."
+      "Downloading generated Veo video..."
     );
 
     await ai.files.download({
@@ -675,75 +580,34 @@ app.post("/api/video", async (req, res) => {
       downloadPath: filePath
     });
 
-    console.log(
-      "✅ Veo video downloaded."
-    );
-
-    // ========================================
-    // VERIFY FILE
-    // ========================================
-
     if (!fs.existsSync(filePath)) {
-
       throw new Error(
-        "Veo download completed but the MP4 file was not created."
+        "Veo video download completed but the file was not found."
       );
     }
 
     const stats =
       fs.statSync(filePath);
 
-    console.log(
-      `📦 Video size: ${stats.size} bytes`
-    );
-
     if (stats.size === 0) {
-
       throw new Error(
-        "Veo created an empty video file."
+        "Downloaded Veo video file is empty."
       );
     }
-
-    // ========================================
-    // SAVE VIDEO ID
-    // ========================================
 
     videoFiles.set(
       videoId,
       filePath
     );
 
-    // ========================================
-    // ALWAYS USE HTTPS
-    // ========================================
-
-    const host =
-      req.get("host");
-
     const videoUrl =
-      `https://${host}/api/video-file/${videoId}`;
+      `${req.protocol}://${req.get("host")}/api/video-file/${videoId}`;
 
     console.log(
-      "================================"
+      "Video ready: " + videoUrl
     );
 
-    console.log(
-      "🎉 VIDEO READY"
-    );
-
-    console.log(
-      videoUrl
-    );
-
-    console.log(
-      "================================"
-    );
-
-    // ========================================
-    // RETURN TO FRONTEND
-    // ========================================
-
-    return res.json({
+    res.json({
       ok: true,
       videoUrl,
       message:
@@ -753,174 +617,71 @@ app.post("/api/video", async (req, res) => {
     });
 
   } catch (error) {
-
     console.error(
-      "================================"
-    );
-
-    console.error(
-      "❌ VEO ERROR"
-    );
-
-    console.error(
+      "VEO ERROR:",
       error?.message || error
     );
 
-    console.error(
-      "================================"
-    );
-
-    return res.status(500).json({
+    res.status(500).json({
       ok: false,
       error:
         error?.message ||
         "Veo video generation failed."
     });
-
   }
-
 });
 
 // ========================================
-// SERVE GENERATED VIDEO
+// SERVE VIDEO FILE
 // ========================================
 
 app.get(
   "/api/video-file/:id",
   (req, res) => {
 
-    try {
-
-      const filePath =
-        videoFiles.get(
-          req.params.id
-        );
-
-      if (!filePath) {
-
-        return res.status(404).json({
-          ok: false,
-          error:
-            "Video not found or the server restarted."
-        });
-
-      }
-
-      if (!fs.existsSync(filePath)) {
-
-        videoFiles.delete(
-          req.params.id
-        );
-
-        return res.status(404).json({
-          ok: false,
-          error:
-            "Video file no longer exists."
-        });
-
-      }
-
-      const stat =
-        fs.statSync(filePath);
-
-      res.status(200);
-
-      res.set({
-        "Content-Type": "video/mp4",
-        "Content-Length": stat.size,
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "public, max-age=3600",
-        "Access-Control-Allow-Origin": "*"
-      });
-
-      const range =
-        req.headers.range;
-
-      if (!range) {
-
-        const stream =
-          fs.createReadStream(filePath);
-
-        stream.pipe(res);
-
-        return;
-      }
-
-      const parts =
-        range
-          .replace(/bytes=/, "")
-          .split("-");
-
-      const start =
-        parseInt(parts[0], 10);
-
-      const end =
-        parts[1]
-          ? parseInt(parts[1], 10)
-          : stat.size - 1;
-
-      if (
-        Number.isNaN(start) ||
-        start < 0 ||
-        start >= stat.size ||
-        end < start
-      ) {
-
-        return res.status(416).set({
-          "Content-Range":
-            `bytes */${stat.size}`
-        }).end();
-
-      }
-
-      const safeEnd =
-        Math.min(
-          end,
-          stat.size - 1
-        );
-
-      const chunkSize =
-        safeEnd - start + 1;
-
-      res.status(206);
-
-      res.set({
-        "Content-Length": chunkSize,
-        "Content-Range":
-          `bytes ${start}-${safeEnd}/${stat.size}`,
-        "Accept-Ranges": "bytes"
-      });
-
-      const stream =
-        fs.createReadStream(
-          filePath,
-          {
-            start,
-            end: safeEnd
-          }
-        );
-
-      stream.pipe(res);
-
-    } catch (error) {
-
-      console.error(
-        "VIDEO SERVING ERROR:",
-        error
+    const filePath =
+      videoFiles.get(
+        req.params.id
       );
 
-      if (!res.headersSent) {
-
-        res.status(500).json({
-          ok: false,
-          error:
-            "Could not serve video."
-        });
-
-      }
-
+    if (!filePath) {
+      return res.status(404).json({
+        ok: false,
+        error: "Video not found."
+      });
     }
 
+    if (!fs.existsSync(filePath)) {
+      videoFiles.delete(
+        req.params.id
+      );
+
+      return res.status(404).json({
+        ok: false,
+        error:
+          "Video file no longer exists."
+      });
+    }
+
+    res.sendFile(
+      filePath,
+      {
+        headers: {
+          "Content-Type": "video/mp4",
+          "Accept-Ranges": "bytes",
+          "Cache-Control":
+            "public, max-age=3600"
+        }
+      },
+      error => {
+        if (error) {
+          console.error(
+            "Video playback error:",
+            error.message
+          );
+        }
+      }
+    );
   }
 );
 
@@ -929,13 +690,10 @@ app.get(
 // ========================================
 
 app.use((req, res) => {
-
   res.status(404).json({
     ok: false,
-    error:
-      "Endpoint not found."
+    error: "Endpoint not found."
   });
-
 });
 
 // ========================================
@@ -944,22 +702,16 @@ app.use((req, res) => {
 
 app.use(
   (err, req, res, next) => {
-
     console.error(
       "SERVER ERROR:",
       err
     );
 
-    if (!res.headersSent) {
-
-      res.status(500).json({
-        ok: false,
-        error:
-          "Internal server error."
-      });
-
-    }
-
+    res.status(500).json({
+      ok: false,
+      error:
+        "Internal server error."
+    });
   }
 );
 
@@ -977,7 +729,7 @@ app.listen(
     );
 
     console.log(
-      "🔥 ViralForge AI Studio"
+      "ViralForge AI Studio"
     );
 
     console.log(
@@ -985,23 +737,22 @@ app.listen(
     );
 
     console.log(
-      "Version: 9.0.0"
+      "Port: " + PORT
     );
 
     console.log(
-      `Port: ${PORT}`
+      "Gemini configured: " +
+      Boolean(GEMINI_API_KEY)
     );
 
     console.log(
-      `Gemini configured: ${Boolean(GEMINI_API_KEY)}`
+      "Text models: " +
+      TEXT_MODELS.join(", ")
     );
 
     console.log(
-      `Text models: ${TEXT_MODELS.join(", ")}`
-    );
-
-    console.log(
-      `Video model: ${VIDEO_MODEL}`
+      "Video model: " +
+      VIDEO_MODEL
     );
 
     console.log(
@@ -1013,21 +764,12 @@ app.listen(
     );
 
     console.log(
-      "Veo download: ENABLED"
-    );
-
-    console.log(
-      "Video streaming: ENABLED"
-    );
-
-    console.log(
-      "HTTPS video URLs: ENABLED"
+      "Video file serving: ENABLED"
     );
 
     console.log(
       "Server is running."
     );
-
   }
 );
 ```
