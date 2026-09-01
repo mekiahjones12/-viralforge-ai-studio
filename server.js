@@ -125,7 +125,7 @@ async function askGemini(prompt) {
 
   for (const model of TEXT_MODELS) {
 
-    console.log(`Trying Gemini model: ${model}`);
+    console.log("Trying Gemini model: " + model);
 
     for (
       let attempt = 1;
@@ -136,8 +136,11 @@ async function askGemini(prompt) {
       try {
 
         console.log(
-          `Gemini attempt ${attempt}/${MAX_RETRIES_PER_MODEL}`
-        );
+  "Gemini attempt " +
+  attempt +
+  "/" +
+  MAX_RETRIES_PER_MODEL
+);
 
         const response =
           await ai.models.generateContent({
