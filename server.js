@@ -1,10 +1,15 @@
 ```js
 import express from "express";
 import cors from "cors";
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
 import { GoogleGenAI } from "@google/genai";
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+app.set("trust proxy", 1);
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
@@ -29,6 +34,12 @@ const VIDEO_MODEL = "veo-3.1-generate-preview";
 
 const MAX_RETRIES_PER_MODEL = 2;
 const RETRY_DELAY_MS = 2000;
+
+// ========================================
+// VIDEO STORAGE
+// ========================================
+
+const videoFiles = new Map();
 
 // ========================================
 // HELPERS
@@ -71,12 +82,15 @@ app.get("/", (req, res) => {
   res.json({
     ok: true,
     name: "ViralForge AI Studio",
-    version: "8.0.0",
+    version: "9.0.0",
     aiConfigured: Boolean(GEMINI_API_KEY),
     features: [
       "Gemini automatic retry",
       "Gemini automatic model fallback",
-      "Veo 3.1 video generation"
+      "Veo 3.1 video generation",
+      "Veo video downloading",
+      "Veo browser playback",
+      "HTTPS video URLs"
     ],
     models: {
       text: TEXT_MODELS,
@@ -89,6 +103,7 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
+    version: "9.0.0",
     aiConfigured: Boolean(GEMINI_API_KEY),
     uptime: process.uptime()
   });
@@ -99,6 +114,7 @@ app.get("/health", (req, res) => {
 // ========================================
 
 async function askGemini(prompt) {
+
   if (!ai) {
     throw new Error(
       "GEMINI_API_KEY is not configured on Render."
@@ -118,6 +134,10 @@ async function askGemini(prompt) {
     ) {
 
       try {
+
+        console.log(
+          `Gemini attempt ${attempt}/${MAX_RETRIES_PER_MODEL}`
+        );
 
         const response =
           await ai.models.generateContent({
@@ -167,6 +187,10 @@ async function askGemini(prompt) {
             RETRY_DELAY_MS *
             Math.pow(2, attempt - 1);
 
+          console.log(
+            `Retrying in ${delay}ms...`
+          );
+
           await sleep(delay);
         }
       }
@@ -181,7 +205,7 @@ async function askGemini(prompt) {
 }
 
 // ========================================
-// MAIN GENERATOR
+// MAIN AI GENERATOR
 // ========================================
 
 app.post("/api/generate", async (req, res) => {
@@ -452,18 +476,18 @@ Do not claim the score predicts actual views.
 // VEO 3.1 VIDEO GENERATOR
 // ========================================
 
-const videoFiles = new Map();
-
 app.post("/api/video", async (req, res) => {
 
   try {
 
     if (!ai) {
+
       return res.status(500).json({
         ok: false,
         error:
           "GEMINI_API_KEY is not configured on Render."
       });
+
     }
 
     const {
@@ -472,24 +496,50 @@ app.post("/api/video", async (req, res) => {
     } = req.body || {};
 
     if (!prompt || !prompt.trim()) {
+
       return res.status(400).json({
         ok: false,
         error:
           "Video prompt is required."
       });
+
     }
 
     if (!["9:16", "16:9"].includes(aspectRatio)) {
+
       return res.status(400).json({
         ok: false,
         error:
           "aspectRatio must be 9:16 or 16:9."
       });
+
     }
 
     console.log(
-      "🎬 Starting Veo 3.1..."
+      "================================"
     );
+
+    console.log(
+      "🎬 STARTING VEO 3.1"
+    );
+
+    console.log(
+      "================================"
+    );
+
+    console.log(
+      "Prompt:",
+      prompt.trim()
+    );
+
+    console.log(
+      "Aspect ratio:",
+      aspectRatio
+    );
+
+    // ========================================
+    // START VEO
+    // ========================================
 
     let operation =
       await ai.models.generateVideos({
@@ -501,8 +551,12 @@ app.post("/api/video", async (req, res) => {
       });
 
     console.log(
-      "⏳ Veo generation started..."
+      "⏳ Veo operation started."
     );
+
+    // ========================================
+    // WAIT FOR VEO
+    // ========================================
 
     while (!operation.done) {
 
@@ -519,16 +573,49 @@ app.post("/api/video", async (req, res) => {
     }
 
     console.log(
-      "✅ Veo finished!"
+      "✅ Veo operation finished."
     );
+
+    // ========================================
+    // CHECK OPERATION ERROR
+    // ========================================
+
+    if (operation.error) {
+
+      console.error(
+        "Veo operation error:",
+        JSON.stringify(
+          operation.error,
+          null,
+          2
+        )
+      );
+
+      throw new Error(
+        operation.error.message ||
+        "Veo generation failed."
+      );
+    }
+
+    // ========================================
+    // GET GENERATED VIDEO
+    // ========================================
 
     const generatedVideos =
       operation?.response?.generatedVideos || [];
 
+    console.log(
+      "Generated video count:",
+      generatedVideos.length
+    );
+
     if (!generatedVideos.length) {
 
       console.error(
-        "Veo response:",
+        "FULL VEO RESPONSE:"
+      );
+
+      console.error(
         JSON.stringify(
           operation,
           null,
@@ -537,7 +624,7 @@ app.post("/api/video", async (req, res) => {
       );
 
       throw new Error(
-        "Veo finished but no video was returned."
+        "Veo finished but returned no generated video."
       );
     }
 
@@ -547,7 +634,10 @@ app.post("/api/video", async (req, res) => {
     if (!videoFile) {
 
       console.error(
-        "Generated video:",
+        "VIDEO OBJECT:"
+      );
+
+      console.error(
         JSON.stringify(
           generatedVideos[0],
           null,
@@ -560,12 +650,18 @@ app.post("/api/video", async (req, res) => {
       );
     }
 
-    const {
-      randomUUID
-    } = await import("crypto");
+    // ========================================
+    // CREATE LOCAL FILE
+    // ========================================
+
+    const videoId =
+      crypto.randomUUID();
 
     const filePath =
-      `/tmp/viralforge-${randomUUID()}.mp4`;
+      path.join(
+        "/tmp",
+        `viralforge-${videoId}.mp4`
+      );
 
     console.log(
       "⬇️ Downloading Veo video..."
@@ -577,29 +673,74 @@ app.post("/api/video", async (req, res) => {
     });
 
     console.log(
-      "✅ Video downloaded!"
+      "✅ Veo video downloaded."
     );
 
-    const videoId =
-      randomUUID();
+    // ========================================
+    // VERIFY FILE
+    // ========================================
+
+    if (!fs.existsSync(filePath)) {
+
+      throw new Error(
+        "Veo download completed but the MP4 file was not created."
+      );
+    }
+
+    const stats =
+      fs.statSync(filePath);
+
+    console.log(
+      `📦 Video size: ${stats.size} bytes`
+    );
+
+    if (stats.size === 0) {
+
+      throw new Error(
+        "Veo created an empty video file."
+      );
+    }
+
+    // ========================================
+    // SAVE VIDEO ID
+    // ========================================
 
     videoFiles.set(
       videoId,
       filePath
     );
 
+    // ========================================
+    // ALWAYS USE HTTPS
+    // ========================================
+
+    const host =
+      req.get("host");
+
     const videoUrl =
-      `${req.protocol}://${req.get("host")}/api/video-file/${videoId}`;
+      `https://${host}/api/video-file/${videoId}`;
 
     console.log(
-      "🎉 Video ready:"
+      "================================"
+    );
+
+    console.log(
+      "🎉 VIDEO READY"
     );
 
     console.log(
       videoUrl
     );
 
-    res.json({
+    console.log(
+      "================================"
+    );
+
+    // ========================================
+    // RETURN TO FRONTEND
+    // ========================================
+
+    return res.json({
       ok: true,
       videoUrl,
       message:
@@ -611,11 +752,22 @@ app.post("/api/video", async (req, res) => {
   } catch (error) {
 
     console.error(
-      "❌ VEO ERROR:",
+      "================================"
+    );
+
+    console.error(
+      "❌ VEO ERROR"
+    );
+
+    console.error(
       error?.message || error
     );
 
-    res.status(500).json({
+    console.error(
+      "================================"
+    );
+
+    return res.status(500).json({
       ok: false,
       error:
         error?.message ||
@@ -627,53 +779,144 @@ app.post("/api/video", async (req, res) => {
 });
 
 // ========================================
-// SERVE VIDEO FILE
+// SERVE GENERATED VIDEO
 // ========================================
 
 app.get(
   "/api/video-file/:id",
   (req, res) => {
 
-    const filePath =
-      videoFiles.get(
-        req.params.id
-      );
+    try {
 
-    if (!filePath) {
+      const filePath =
+        videoFiles.get(
+          req.params.id
+        );
 
-      return res.status(404).json({
-        ok: false,
-        error:
-          "Video not found."
-      });
+      if (!filePath) {
 
-    }
-
-    res.sendFile(
-      filePath,
-      {
-        headers: {
-          "Content-Type":
-            "video/mp4",
-          "Accept-Ranges":
-            "bytes",
-          "Cache-Control":
-            "public, max-age=3600"
-        }
-      },
-      error => {
-
-        if (error) {
-
-          console.error(
-            "Video playback error:",
-            error.message
-          );
-
-        }
+        return res.status(404).json({
+          ok: false,
+          error:
+            "Video not found or the server restarted."
+        });
 
       }
-    );
+
+      if (!fs.existsSync(filePath)) {
+
+        videoFiles.delete(
+          req.params.id
+        );
+
+        return res.status(404).json({
+          ok: false,
+          error:
+            "Video file no longer exists."
+        });
+
+      }
+
+      const stat =
+        fs.statSync(filePath);
+
+      res.status(200);
+
+      res.set({
+        "Content-Type": "video/mp4",
+        "Content-Length": stat.size,
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*"
+      });
+
+      const range =
+        req.headers.range;
+
+      if (!range) {
+
+        const stream =
+          fs.createReadStream(filePath);
+
+        stream.pipe(res);
+
+        return;
+      }
+
+      const parts =
+        range
+          .replace(/bytes=/, "")
+          .split("-");
+
+      const start =
+        parseInt(parts[0], 10);
+
+      const end =
+        parts[1]
+          ? parseInt(parts[1], 10)
+          : stat.size - 1;
+
+      if (
+        Number.isNaN(start) ||
+        start < 0 ||
+        start >= stat.size ||
+        end < start
+      ) {
+
+        return res.status(416).set({
+          "Content-Range":
+            `bytes */${stat.size}`
+        }).end();
+
+      }
+
+      const safeEnd =
+        Math.min(
+          end,
+          stat.size - 1
+        );
+
+      const chunkSize =
+        safeEnd - start + 1;
+
+      res.status(206);
+
+      res.set({
+        "Content-Length": chunkSize,
+        "Content-Range":
+          `bytes ${start}-${safeEnd}/${stat.size}`,
+        "Accept-Ranges": "bytes"
+      });
+
+      const stream =
+        fs.createReadStream(
+          filePath,
+          {
+            start,
+            end: safeEnd
+          }
+        );
+
+      stream.pipe(res);
+
+    } catch (error) {
+
+      console.error(
+        "VIDEO SERVING ERROR:",
+        error
+      );
+
+      if (!res.headersSent) {
+
+        res.status(500).json({
+          ok: false,
+          error:
+            "Could not serve video."
+        });
+
+      }
+
+    }
 
   }
 );
@@ -704,11 +947,15 @@ app.use(
       err
     );
 
-    res.status(500).json({
-      ok: false,
-      error:
-        "Internal server error."
-    });
+    if (!res.headersSent) {
+
+      res.status(500).json({
+        ok: false,
+        error:
+          "Internal server error."
+      });
+
+    }
 
   }
 );
@@ -732,6 +979,10 @@ app.listen(
 
     console.log(
       "================================"
+    );
+
+    console.log(
+      "Version: 9.0.0"
     );
 
     console.log(
@@ -759,7 +1010,15 @@ app.listen(
     );
 
     console.log(
-      "Video file serving: ENABLED"
+      "Veo download: ENABLED"
+    );
+
+    console.log(
+      "Video streaming: ENABLED"
+    );
+
+    console.log(
+      "HTTPS video URLs: ENABLED"
     );
 
     console.log(
