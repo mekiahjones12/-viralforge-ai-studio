@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -320,6 +321,15 @@ button{cursor:pointer}
   transform:none;
 }
 
+.video-player{
+  width:100%;
+  max-width:900px;
+  display:block;
+  margin-top:10px;
+  border-radius:14px;
+  background:#000;
+}
+
 @media(max-width:900px){
   .sidebar{width:72px}
   .brand span,.nav button span{display:none}
@@ -349,12 +359,11 @@ button{cursor:pointer}
 <aside class="sidebar">
 
 <div class="brand">
-  <div class="logo">⚡</div>
-  <span>ViralForge</span>
+<div class="logo">⚡</div>
+<span>ViralForge</span>
 </div>
 
 <div class="nav">
-
 <button class="active" data-page="home">🏠 <span>Dashboard</span></button>
 <button data-page="studio">🎬 <span>Content Studio</span></button>
 <button data-page="hooks">🪝 <span>Hook Lab</span></button>
@@ -365,6 +374,7 @@ button{cursor:pointer}
 <button data-page="video">🎥 <span>Video Lab</span></button>
 <button data-page="settings">⚙️ <span>Settings</span></button>
 </div>
+
 </aside>
 
 <main class="main">
@@ -735,6 +745,7 @@ Your analysis will appear here.
 
 <div id="savedOutput" class="history"></div>
 
+</div>
 </section>
 
 <section id="video" class="page">
@@ -743,7 +754,9 @@ Your analysis will appear here.
 
 <h2>🎥 Video Lab</h2>
 
-<p class="muted">Turn a prompt into an AI video with Veo.</p>
+<p class="muted">
+Turn a prompt into an AI video with Veo.
+</p>
 
 <div class="field">
 
@@ -793,6 +806,7 @@ Your generated video will appear here.
 </section>
 
 <section id="settings" class="page">
+
 <div class="panel">
 
 <h2>⚙️ Settings</h2>
@@ -836,6 +850,7 @@ Veo 3.1 video generation is configured on the backend.
 </div>
 
 </div>
+
 </section>
 
 </main>
@@ -845,34 +860,13 @@ Veo 3.1 video generation is configured on the backend.
 
 <script>
 
-/* =========================================
-   IMPORTANT
-========================================= */
-
 const API_URL =
 "https://viralforge-backend-nl1f.onrender.com";
 
-
-/* =========================================
-   DATA
-========================================= */
-
 const niches=[
-"General",
-"Gaming",
-"Sports",
-"Education",
-"Fitness",
-"Storytime",
-"Money",
-"Tech",
-"Entertainment",
-"Motivation",
-"Creators",
-"Beauty",
-"Food",
-"Travel",
-"Music"
+"General","Gaming","Sports","Education","Fitness",
+"Storytime","Money","Tech","Entertainment","Motivation",
+"Creators","Beauty","Food","Travel","Music"
 ];
 
 const pageNames={
@@ -887,11 +881,6 @@ video:"Video Lab",
 settings:"Settings"
 };
 
-
-/* =========================================
-   DROPDOWNS
-========================================= */
-
 ["niche","hookNiche","ideaNiche","defaultNiche"].forEach(id=>{
 
 const select=document.getElementById(id);
@@ -902,19 +891,11 @@ select.add(new Option(n,n));
 
 });
 
-
-/* =========================================
-   NAVIGATION
-========================================= */
-
 function openPage(id){
 
 const page=document.getElementById(id);
 
-if(!page){
-console.error("Page not found:",id);
-return;
-}
+if(!page)return;
 
 document.querySelectorAll(".page").forEach(p=>{
 p.classList.remove("active");
@@ -940,25 +921,13 @@ window.scrollTo(0,0);
 
 }
 
-
-/* =========================================
-   NAV BUTTONS
-========================================= */
-
 document.querySelectorAll(".nav button").forEach(button=>{
 
 button.addEventListener("click",function(){
-
 openPage(this.dataset.page);
-
 });
 
 });
-
-
-/* =========================================
-   TOAST
-========================================= */
 
 function toast(message){
 
@@ -974,22 +943,13 @@ box.classList.remove("show");
 
 }
 
-
-/* =========================================
-   COPY
-========================================= */
-
 function copyText(text){
 
 if(!text)return;
 
 navigator.clipboard.writeText(text)
-.then(()=>{
-toast("Copied!");
-})
-.catch(()=>{
-toast("Copy failed");
-});
+.then(()=>toast("Copied!"))
+.catch(()=>toast("Copy failed"));
 
 }
 
@@ -1002,11 +962,6 @@ copyText(element.innerText);
 }
 
 }
-
-
-/* =========================================
-   BACKEND REQUEST
-========================================= */
 
 async function askAI(data){
 
@@ -1030,27 +985,18 @@ throw new Error("Backend returned invalid JSON.");
 }
 
 if(!response.ok){
-
 throw new Error(
 result.error || "AI server error."
 );
-
 }
 
 if(!result.result){
-
 throw new Error("No AI result was returned.");
-
 }
 
 return result.result;
 
 }
-
-
-/* =========================================
-   SCRIPTS
-========================================= */
 
 async function generateScripts(){
 
@@ -1102,6 +1048,7 @@ onclick='copyText(${JSON.stringify(result)})'>
 onclick='saveContent("AI Script",${JSON.stringify(result)})'>
 💾 Save
 </button>
+
 <button class="btn"
 onclick='document.getElementById("scoreText").value=${JSON.stringify(result)};openPage("score")'>
 📊 Score
@@ -1133,11 +1080,6 @@ toast("AI generation failed");
 
 }
 
-
-/* =========================================
-   HOOKS
-========================================= */
-
 async function generateHooks(){
 
 const topic=
@@ -1157,12 +1099,10 @@ output.innerText=
 try{
 
 const result=await askAI({
-
 type:"hooks",
 topic,
 niche:document.getElementById("hookNiche").value,
 style:document.getElementById("hookStyle").value
-
 });
 
 output.innerText=result;
@@ -1179,11 +1119,6 @@ toast("Hook generation failed");
 }
 
 }
-
-
-/* =========================================
-   IDEAS
-========================================= */
 
 async function generateIdeas(){
 
@@ -1218,11 +1153,6 @@ toast("Idea generation failed");
 }
 
 }
-
-
-/* =========================================
-   CAPTION
-========================================= */
 
 async function generateCaption(){
 
@@ -1265,11 +1195,6 @@ toast("Caption generation failed");
 }
 
 }
-
-
-/* =========================================
-   SCORE
-========================================= */
 
 async function analyzeScore(){
 
@@ -1366,12 +1291,6 @@ toast("Score failed");
 
 }
 
-
-
-  /* =========================================
-   SAVED CONTENT
-========================================= */
-
 function saveContent(type,text){
 
 if(!text)return;
@@ -1398,7 +1317,6 @@ toast("💾 Saved!");
 
 }
 
-
 function saveCurrent(type,id){
 
 const element=
@@ -1414,7 +1332,6 @@ element.innerText
 }
 
 }
-
 
 function renderSaved(){
 
@@ -1482,7 +1399,6 @@ Delete
 
 }
 
-
 function copySaved(index){
 
 const saved=
@@ -1495,7 +1411,6 @@ copyText(saved[index].text);
 }
 
 }
-
 
 function deleteSaved(index){
 
@@ -1517,7 +1432,6 @@ toast("Deleted");
 
 }
 
-
 function clearSaved(){
 
 if(!confirm("Delete all saved content?")){
@@ -1533,11 +1447,6 @@ renderSaved();
 toast("All saved content cleared");
 
 }
-
-
-/* =========================================
-   RANDOM
-========================================= */
 
 function surpriseMe(){
 
@@ -1569,11 +1478,6 @@ toast("🎲 Random topic loaded");
 
 }
 
-
-/* =========================================
-   SETTINGS
-========================================= */
-
 function saveSettings(){
 
 localStorage.setItem(
@@ -1584,7 +1488,6 @@ document.getElementById("defaultNiche").value
 toast("Settings saved");
 
 }
-
 
 function resetSettings(){
 
@@ -1599,15 +1502,9 @@ toast("Settings reset");
 
 }
 
-
-/* =========================================
-   HTML SAFETY
-========================================= */
-
 function escapeHTML(text){
 
 return String(text)
-
 .replaceAll("&","&amp;")
 .replaceAll("<","&lt;")
 .replaceAll(">","&gt;")
@@ -1615,11 +1512,6 @@ return String(text)
 .replaceAll("'","&#039;");
 
 }
-
-
-/* =========================================
-   LOAD SETTINGS
-========================================= */
 
 const savedNiche=
 localStorage.getItem(
@@ -1636,7 +1528,7 @@ document.getElementById(
 
 
 /* =========================================
-   VIDEO LAB
+   FIXED VEO VIDEO GENERATOR
 ========================================= */
 
 async function generateVideo(){
@@ -1699,16 +1591,37 @@ throw new Error(
 if(!response.ok){
 
 throw new Error(
-result.error ||
+result?.error ||
 "Video generation failed."
 );
 
 }
 
-if(!result.videoUrl){
+
+/*
+  The backend must return videoUrl.
+  This accepts several common response shapes
+  so the frontend does not crash if the backend
+  wraps the URL differently.
+*/
+
+const videoUrl =
+result?.videoUrl ||
+result?.url ||
+result?.video?.url ||
+result?.video?.uri ||
+result?.videoUrl?.url ||
+null;
+
+if(!videoUrl){
+
+console.error(
+"Veo response:",
+result
+);
 
 throw new Error(
-"No video URL was returned."
+"No video URL was returned by the backend."
 );
 
 }
@@ -1721,16 +1634,11 @@ output.innerHTML=`
 <div class="result">
 
 <video
+class="video-player"
 controls
 playsinline
-style="
-width:100%;
-max-width:900px;
-border-radius:14px;
-display:block;
-margin-top:10px;
-"
-src="${escapeHTML(result.videoUrl)}">
+preload="metadata"
+src="${escapeHTML(videoUrl)}">
 </video>
 
 <br>
@@ -1739,9 +1647,9 @@ src="${escapeHTML(result.videoUrl)}">
 
 <a
 class="btn primary"
-href="${escapeHTML(result.videoUrl)}"
+href="${escapeHTML(videoUrl)}"
 target="_blank"
-rel="noopener">
+rel="noopener noreferrer">
 ▶️ Open Video
 </a>
 
@@ -1751,9 +1659,34 @@ rel="noopener">
 
 `;
 
+const player =
+output.querySelector("video");
+
+player.addEventListener(
+"error",
+()=>{
+status.innerText=
+"⚠️ Video was generated, but the browser could not load the video file.";
+
+toast("Video file could not be loaded");
+}
+);
+
+player.addEventListener(
+"loadeddata",
+()=>{
+toast("🎬 Video loaded!");
+}
+);
+
 toast("🎬 AI video generated!");
 
 }catch(error){
+
+console.error(
+"Video generation error:",
+error
+);
 
 status.innerText=
 "❌ Video generation failed.";
@@ -1762,7 +1695,10 @@ output.innerHTML=`
 
 <div class="result">
 
-❌ ${escapeHTML(error.message)}
+❌ ${escapeHTML(
+error?.message ||
+"Video generation failed."
+)}
 
 </div>
 
@@ -1822,14 +1758,10 @@ toast("📝 Script added to Video Lab!");
 
 }
 
-
-/* =========================================
-   START
-========================================= */
-
 renderSaved();
 
 </script>
 
 </body>
 </html>
+```
